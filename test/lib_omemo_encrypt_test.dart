@@ -9,7 +9,7 @@ import 'package:lib_omemo_encrypt/utils/utils.dart';
 const _COUNT_PREKEYS = 20;
 
 void main() {
-  test('adds one to input values', () async {
+  test('should generate prekeys and verify one prekey bundle', () async {
     final encryption = Axololt();
     // ignore: constant_identifier_names
     const TAG = 'Axololt';
@@ -26,7 +26,7 @@ void main() {
         await encryption.generatePreKeysPackage(_COUNT_PREKEYS);
 
     final prekeyManager = PreKeyBundleManager();
-    final aliceUserId = 'alice@slash.co';
+    const aliceUserId = 'alice@slash.co';
     prekeyManager.setPreKey(
         aliceUserId,
         PreKeyBundle(
@@ -36,6 +36,9 @@ void main() {
             preKey: prekeyPackage.preKeys[0],
             signedPreKey: prekeyPackage.signedPreKey));
     final forAlice = prekeyManager.getPreKey(aliceUserId);
+
+    final cipherSession = CipherSession();
+    final result = await cipherSession.createSessionFromPreKeyBundle(forAlice);
 
     Log.d(TAG, 'identityKeyPair :');
     Log.d(TAG, identityKeyPair);
@@ -49,6 +52,8 @@ void main() {
     Log.d(TAG, signedPreKey);
     Log.d(TAG, 'forAlice :');
     Log.d(TAG, forAlice);
-    expect(1, 1);
+    Log.d(TAG, 'result session :');
+    Log.d(TAG, result);
+    expect(result, true);
   });
 }

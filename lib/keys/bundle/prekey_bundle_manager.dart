@@ -14,9 +14,12 @@ class PreKeyBundleManager {
     }
   }
 
-  getPreKey(String userId) {
+  PreKeyBundle getPreKey(String userId) {
     if (userPrekeyBundles.containsKey(userId)) {
-      return userPrekeyBundles[userId];
+      final index = userPrekeyBundles.keys
+          .toList()
+          .indexWhere((element) => element == userId);
+      return userPrekeyBundles.values.elementAt(index);
     } else {
       throw PreKeyException();
     }
