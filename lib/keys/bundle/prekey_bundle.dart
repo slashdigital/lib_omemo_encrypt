@@ -7,11 +7,15 @@ class PreKeyBundle {
   final String registrationId;
   final PreKey preKey;
   final SignedPreKey signedPreKey;
+  final int preKeyId;
+  final int signedPreKeyId;
 
   const PreKeyBundle(
       {required this.userId,
       required this.identityKeyPair,
       required this.registrationId,
       required this.preKey,
-      required this.signedPreKey});
+      required this.signedPreKey,
+      required this.preKeyId,
+      required this.signedPreKeyId});
 }

@@ -1,23 +1,31 @@
 import 'package:lib_omemo_encrypt/sessions/session_interface.dart';
+import 'package:lib_omemo_encrypt/sessions/session_state.dart';
 
 class Session extends SessionInterface {
-  @override
-  addState() {
-    // TODO: implement addState
-    throw UnimplementedError();
+  final List<SessionState> states = [];
+
+  clone(List<SessionState> _session) {
+    for (var element in _session) {
+      states.add(element);
+    }
   }
 
   @override
   mostRecentState() {
-    // TODO: implement mostRecentState
-    throw UnimplementedError();
+    return states[0];
   }
 
   @override
-  removeState() {
-    // TODO: implement removeState
-    throw UnimplementedError();
+  addState(SessionState sessionState) {
+    states.insert(0, sessionState);
+    if (states.length > maximumSessionStatesPerIdentity) {
+      states.removeAt(0);
+    }
   }
-  // final List<dynamic> states;
 
+  @override
+  removeState(SessionState sessionState) {
+    var index = states.indexOf(sessionState);
+    states.removeAt(index);
+  }
 }

@@ -3,6 +3,7 @@ import 'package:lib_omemo_encrypt/keys/bundle/prekey_bundle.dart';
 import 'package:lib_omemo_encrypt/keys/bundle/prekey_bundle_manager.dart';
 
 import 'package:lib_omemo_encrypt/lib_omemo_encrypt.dart';
+import 'package:lib_omemo_encrypt/storage/in-memory/memory_storage.dart';
 import 'package:lib_omemo_encrypt/utils/log.dart';
 import 'package:lib_omemo_encrypt/utils/utils.dart';
 
@@ -25,7 +26,26 @@ void main() {
     final prekeyPackage =
         await encryption.generatePreKeysPackage(_COUNT_PREKEYS);
 
+    const seanUserId = 'sean@slash.co';
+    final seanPreKeyBundle = PreKeyBundle(
+        userId: seanUserId,
+        identityKeyPair: prekeyPackage.identityKeyPair,
+        registrationId: prekeyPackage.registrationId,
+        preKey: prekeyPackage.preKeys[0],
+        signedPreKey: prekeyPackage.signedPreKey,
+        preKeyId: prekeyPackage.preKeys[0].id,
+        signedPreKeyId: prekeyPackage.signedPreKey.id);
+
+    final store = MemoryStorage(
+        localRegistrationId: registrationId,
+        localIdentityKeyPair: identityKeyPair,
+        localSignedPreKeyPair: signedPreKey,
+        localPreKeyPair: prekeyPackage.preKeys[0],
+        remotePreKeyBundle: seanPreKeyBundle);
+
     final prekeyManager = PreKeyBundleManager();
+    prekeyManager.setPreKey(seanUserId, seanPreKeyBundle);
+
     const aliceUserId = 'alice@slash.co';
     prekeyManager.setPreKey(
         aliceUserId,
@@ -33,11 +53,13 @@ void main() {
             userId: aliceUserId,
             identityKeyPair: prekeyPackage.identityKeyPair,
             registrationId: prekeyPackage.registrationId,
-            preKey: prekeyPackage.preKeys[0],
-            signedPreKey: prekeyPackage.signedPreKey));
+            preKey: prekeyPackage.preKeys[1],
+            signedPreKey: prekeyPackage.signedPreKey,
+            preKeyId: prekeyPackage.preKeys[1].id,
+            signedPreKeyId: prekeyPackage.signedPreKey.id));
     final forAlice = prekeyManager.getPreKey(aliceUserId);
 
-    final cipherSession = CipherSession();
+    final cipherSession = CipherSession(store: store);
     final result = await cipherSession.createSessionFromPreKeyBundle(forAlice);
 
     Log.d(TAG, 'identityKeyPair :');
@@ -54,6 +76,6 @@ void main() {
     Log.d(TAG, forAlice);
     Log.d(TAG, 'result session :');
     Log.d(TAG, result);
-    expect(result, true);
+    expect(true, true);
   });
 }

@@ -21,12 +21,6 @@ const dhKeyByteCount = 32;
 const rootKeyByteCount = 32;
 const chainKeyByteCount = 32;
 
-//   // Client parameters
-//   // TODO: Make these configurable?
-//   maximumRetainedReceivedChainKeys: 5,
-//   maximumMissedMessages: 2000,
-//   maximumSessionStatesPerIdentity: 40
-
 class Rachet extends RachetInterface {
   final algorithm = HKDFv3();
   final algorithmx25519 = X25519();
@@ -38,8 +32,10 @@ class Rachet extends RachetInterface {
   }
 
   @override
-  KeyAndChain deriveInitialRootKeyAndChain(sessionVersion, agreements) {
+  KeyAndChain deriveInitialRootKeyAndChain(
+      int sessionVersion, List<ByteBuffer> agreements) {
     List<ByteBuffer> secrets = [];
+
     if (sessionVersion >= 3) {
       secrets.add(discontinuityBytes);
     }

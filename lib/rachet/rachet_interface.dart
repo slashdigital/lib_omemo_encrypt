@@ -67,7 +67,8 @@ final discontinuityBytes = Uint8List.fromList([
 ]).buffer;
 
 abstract class RachetInterface {
-  KeyAndChain deriveInitialRootKeyAndChain(sessionVersion, agreements);
+  KeyAndChain deriveInitialRootKeyAndChain(
+      int sessionVersion, List<ByteBuffer> agreements);
   Future<KeyAndChain> deriveNextRootKeyAndChain(
       rootKey, theirEphemeralPublicKey, ourEphemeralPrivateKey);
   Future<Chain> clickSubRachet(Chain chain);
