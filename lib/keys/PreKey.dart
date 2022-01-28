@@ -1,4 +1,4 @@
-import 'package:lib_omemo_encrypt/keys/Key.dart';
+import 'package:lib_omemo_encrypt/keys/key.dart';
 
 class PreKey extends LibOMEMOKey {
   const PreKey({required id, required keyPair})

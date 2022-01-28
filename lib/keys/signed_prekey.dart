@@ -1,5 +1,5 @@
 import 'package:cryptography/cryptography.dart';
-import 'package:lib_omemo_encrypt/keys/Key.dart';
+import 'package:lib_omemo_encrypt/keys/key.dart';
 
 class SignedPreKey extends LibOMEMOKey {
   final Signature signature;
