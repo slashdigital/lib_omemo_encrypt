@@ -75,6 +75,17 @@ TODO: to add
 
 - Update package: `dart pub get`
 
+### Use protobuf
+
+- add plugin `dart pub global activate protoc_plugin` / install it to mac: `brew install protobuf` (https://github.com/google/protobuf.dart/tree/master/protoc_plugin)
+- Run
+
+```
+
+protoc --proto_path=./ --plugin=protoc-gen-dart=$HOME/.pub-cache/bin/protoc-gen-dart  --dart_out=./ lib/protobuf/OMEMOMessage.proto  lib/protobuf/OMEMOKeyExchange.proto  lib/protobuf/OMEMOAuthenticatedMessage.proto
+
+```
+
 ### Write test
 
 ### Running test

@@ -11,7 +11,7 @@ class Session extends SessionInterface {
   }
 
   @override
-  mostRecentState() {
+  SessionState mostRecentState() {
     return states[0];
   }
 

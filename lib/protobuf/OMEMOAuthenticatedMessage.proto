@@ -1,0 +1,6 @@
+syntax = "proto2";
+
+message OMEMOAuthenticatedMessage {
+  required bytes mac     = 1;
+  required bytes message = 2; // Byte-encoding of an OMEMOMessage
+}

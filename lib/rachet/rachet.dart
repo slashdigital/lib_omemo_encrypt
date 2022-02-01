@@ -13,7 +13,7 @@ import 'package:lib_omemo_encrypt/utils/array_buffer_utils.dart';
 const currentVersion = 3;
 
 // Sizes of various fields
-const macByteCount = 8;
+const macByteCount = 32;
 const cipherKeyByteCount = 32;
 const macKeyByteCount = 32;
 const ivByteCount = 16;
@@ -66,8 +66,8 @@ class Rachet extends RachetInterface {
         whisperMessageKeys.asUint8List(),
         cipherKeyByteCount + macKeyByteCount + ivByteCount);
     final ciperKeyBytes = keyMaterialBytes.sublist(0, cipherKeyByteCount);
-    final macKeyBytes = keyMaterialBytes
-        .sublist(cipherKeyByteCount + cipherKeyByteCount + macKeyByteCount);
+    final macKeyBytes = keyMaterialBytes.sublist(
+        cipherKeyByteCount, cipherKeyByteCount + macKeyByteCount);
     final ivBytes =
         keyMaterialBytes.sublist(cipherKeyByteCount + macKeyByteCount);
     return MessageKey(
@@ -76,7 +76,9 @@ class Rachet extends RachetInterface {
 
   @override
   Future<KeyAndChain> deriveNextRootKeyAndChain(
-      rootKey, theirEphemeralPublicKey, ourEphemeralPrivateKey) async {
+      rootKey,
+      SimplePublicKey theirEphemeralPublicKey,
+      SimpleKeyPair ourEphemeralPrivateKey) async {
     var sharedSecret = await algorithmx25519.sharedSecretKey(
         keyPair: ourEphemeralPrivateKey,
         remotePublicKey:

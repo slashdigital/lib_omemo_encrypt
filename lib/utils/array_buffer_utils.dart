@@ -31,4 +31,6 @@ class ArrayBufferUtils {
   static Future<ByteBuffer> getBytesBuffer(SecretKey secretKey) async {
     return getBuffer(await secretKey.extractBytes());
   }
+
+  static ByteBuffer fromByte(int byte) => Uint8List.fromList([byte]).buffer;
 }

@@ -12,11 +12,10 @@ const maximumRetainedReceivedChainKeys = 20;
 
 class SessionState {
   final int sessionVersion;
-  final dynamic remoteIdentityKey;
-  final dynamic localIdentityKey;
-  final dynamic pendingPreKey = null;
+  final SimpleKeyPair remoteIdentityKey; // their
+  final SimpleKeyPair localIdentityKey;
   late final String localRegistrationId;
-  final dynamic theirBaseKey = null;
+  SimplePublicKey? theirBaseKey;
   // Ratchet parameters
   final Uint8List rootKey;
   final Chain sendingChain;
@@ -24,7 +23,7 @@ class SessionState {
   final List<PublicKeyAndChain> receivingChains =
       []; // Keep a small list of chain keys to allow for out of order message delivery.
   final int previousCounter = 0;
-  late final PendingPreKey pending;
+  PendingPreKey? pending;
 
   SessionState({
     required this.sessionVersion,
@@ -35,8 +34,8 @@ class SessionState {
     required this.senderRatchetKeyPair,
   });
 
-  findReceivingChain(LibOMEMOKey theirEphemeralPublicKey) async {
-    final keyPair = await theirEphemeralPublicKey.keyPair.extractPublicKey();
+  Chain? findReceivingChain(SimplePublicKey theirEphemeralPublicKey) {
+    final keyPair = theirEphemeralPublicKey;
     for (var i = 0; i < receivingChains.length; i++) {
       var receivingChain = receivingChains[i];
       if (keyPair == receivingChain.ephemeralPublicKey) {
@@ -46,11 +45,9 @@ class SessionState {
     return null;
   }
 
-  addReceivingChain(LibOMEMOKey theirEphemeralPublicKey, Chain chain) async {
+  addReceivingChain(PublicKey theirEphemeralPublicKey, Chain chain) async {
     receivingChains.add(PublicKeyAndChain(
-        ephemeralPublicKey:
-            await theirEphemeralPublicKey.keyPair.extractPublicKey(),
-        chain: chain));
+        ephemeralPublicKey: theirEphemeralPublicKey, chain: chain));
     // We don't keep an infinite number of chain keys, as this would compromise forward secrecy.
     if (receivingChains.length > maximumRetainedReceivedChainKeys) {
       receivingChains.removeAt(0);

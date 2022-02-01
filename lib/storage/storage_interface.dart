@@ -6,9 +6,10 @@ abstract class StorageInterface {
   initKeys();
   SimpleKeyPair getLocalIdentityKeyPair();
   Future<String> getLocalRegistrationId();
-
-  SignedPreKey getLocalSignedPreKeyPair();
-  PreKey getLocalPreKeyPair();
+  void addLocalSignedPreKeyPair(SignedPreKey signedPreKey);
+  SignedPreKey getLocalSignedPreKeyPair(int signedPreKeyId);
+  PreKey getLocalPreKeyPair(int preKeyId);
+  void setLocalPreKeyPair(List<PreKey> prekeys);
   PreKeyBundle getRemotePreKeyBundle();
   bool isRemoteIdentityTrusted();
   bool hasSession();
