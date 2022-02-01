@@ -10,6 +10,10 @@ import 'package:lib_omemo_encrypt/utils/utils.dart';
 const _COUNT_PREKEYS = 20;
 
 void main() {
+  late Log log;
+  setUp(() {
+    log = Log.instance;
+  });
   test('should generate prekeys and verify one prekey bundle', () async {
     final encryption = Axololt();
     // ignore: constant_identifier_names
@@ -62,20 +66,20 @@ void main() {
     final cipherSession = CipherSession(store: store);
     final result = await cipherSession.createSessionFromPreKeyBundle(forAlice);
 
-    Log.d(TAG, 'identityKeyPair :');
-    Log.d(TAG, identityKeyPair);
-    Log.d(TAG, 'registrationId :');
-    Log.d(TAG, registrationId);
-    Log.d(TAG, 'preKeyLists :');
-    Log.d(TAG, preKeyLists);
-    Log.d(TAG, 'lastResortKey :');
-    Log.d(TAG, lastResortKey);
-    Log.d(TAG, 'signedPreKey :');
-    Log.d(TAG, signedPreKey);
-    Log.d(TAG, 'forAlice :');
-    Log.d(TAG, forAlice);
-    Log.d(TAG, 'result session :');
-    Log.d(TAG, result);
+    log.d(TAG, 'identityKeyPair :');
+    log.d(TAG, identityKeyPair);
+    log.d(TAG, 'registrationId :');
+    log.d(TAG, registrationId);
+    log.d(TAG, 'preKeyLists :');
+    log.d(TAG, preKeyLists);
+    log.d(TAG, 'lastResortKey :');
+    log.d(TAG, lastResortKey);
+    log.d(TAG, 'signedPreKey :');
+    log.d(TAG, signedPreKey);
+    log.d(TAG, 'forAlice :');
+    log.d(TAG, forAlice);
+    log.d(TAG, 'result session :');
+    log.d(TAG, result);
     expect(true, true);
   });
 }

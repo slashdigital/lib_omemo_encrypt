@@ -70,3 +70,20 @@ start using the package.
 ## Additional information
 
 TODO: to add
+
+## Development
+
+- Update package: `dart pub get`
+
+### Write test
+
+### Running test
+
+
+- Generate mock classes: `dart run build_runner build`
+- Run test: `flutter test`
+- Run coverage: `flutter test --coverage --test-randomize-ordering-seed random`
+### Show coverage report with cov gobally
+
+- (once) Add global cov: `flutter pub global activate test_cov_console`
+- Run to see report:  flutter pub global run test_cov_console

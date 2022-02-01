@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 
 class ArrayBufferUtils {
-  static concat(List<ByteBuffer> buffers) {
+  static Uint8List concat(List<ByteBuffer> buffers) {
     // final _buffers = (buffers.length == 1) ? buffers[0] : buffers;
     var i;
     var byteLength = 0;
