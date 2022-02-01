@@ -13,7 +13,7 @@ import 'package:lib_omemo_encrypt/utils/array_buffer_utils.dart';
 const currentVersion = 3;
 
 // Sizes of various fields
-const macByteCount = 32;
+const macByteCount = 8;
 const cipherKeyByteCount = 32;
 const macKeyByteCount = 32;
 const ivByteCount = 16;
