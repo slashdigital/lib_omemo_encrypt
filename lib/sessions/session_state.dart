@@ -12,8 +12,8 @@ const maximumRetainedReceivedChainKeys = 20;
 
 class SessionState {
   final int sessionVersion;
-  final SimpleKeyPair remoteIdentityKey; // their
-  final SimpleKeyPair localIdentityKey;
+  final SimplePublicKey remoteIdentityKey; // their
+  final SimplePublicKey localIdentityKey;
   late final String localRegistrationId;
   SimplePublicKey? theirBaseKey;
   // Ratchet parameters
@@ -51,6 +51,14 @@ class SessionState {
     // We don't keep an infinite number of chain keys, as this would compromise forward secrecy.
     if (receivingChains.length > maximumRetainedReceivedChainKeys) {
       receivingChains.removeAt(0);
+    }
+  }
+
+  setReceivingChain(PublicKey theirEphemeralPublicKey, Chain chain) async {
+    final index = receivingChains.indexWhere((receivingChain) =>
+        receivingChain.ephemeralPublicKey == theirEphemeralPublicKey);
+    if (index != -1) {
+      receivingChains[index].chain = chain;
     }
   }
 }

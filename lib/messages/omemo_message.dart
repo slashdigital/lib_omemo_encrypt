@@ -21,7 +21,7 @@ class KeyExchangeMessage {
   final int preKeyId;
   final int signedPreKeyId;
   final SimplePublicKey baseKey;
-  final SimpleKeyPair identityKey;
+  final SimplePublicKey identityKey;
   final Uint8List message;
 
   const KeyExchangeMessage(

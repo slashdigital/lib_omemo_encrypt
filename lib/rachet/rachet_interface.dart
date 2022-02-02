@@ -71,7 +71,7 @@ abstract class RachetInterface {
   KeyAndChain deriveInitialRootKeyAndChain(
       int sessionVersion, List<ByteBuffer> agreements);
   Future<KeyAndChain> deriveNextRootKeyAndChain(
-      rootKey,
+      Uint8List rootKey,
       SimplePublicKey theirEphemeralPublicKey,
       SimpleKeyPair ourEphemeralPrivateKey);
   Future<Chain> clickSubRachet(Chain chain);

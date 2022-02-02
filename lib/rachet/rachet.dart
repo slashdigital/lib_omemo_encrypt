@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:core';
 import 'dart:typed_data';
 
-// import 'package:crypto/crypto.dart';
+import 'package:crypto/crypto.dart' as crypto;
 import 'package:cryptography/cryptography.dart';
+import 'package:lib_omemo_encrypt/encryptions/axolotl/axolotl.dart';
 import 'package:lib_omemo_encrypt/kdf/hkdf/hkdfv3.dart';
 import 'package:lib_omemo_encrypt/rachet/chain.dart';
 import 'package:lib_omemo_encrypt/rachet/key_and_chain.dart';
@@ -23,12 +25,14 @@ const chainKeyByteCount = 32;
 
 class Rachet extends RachetInterface {
   final algorithm = HKDFv3();
-  final algorithmx25519 = X25519();
+  final algorithmEd25519 = Ed25519();
+  final Axololt axololt = Axololt();
 
   @override
   Future<Chain> clickSubRachet(Chain chain) async {
-    return chain.copyWith(
-        index: chain.index++, key: await deriveNextChainKey(chain.key));
+    chain.index++;
+    chain.key = await deriveNextChainKey(chain.key);
+    return chain;
   }
 
   @override
@@ -50,21 +54,21 @@ class Rachet extends RachetInterface {
 
   @override
   Future<Uint8List> deriveMessageKey(Uint8List chainKey) async {
-    final hmac = Hmac.sha256();
-    final mac = await hmac.calculateMac(
-      [messageKeySeed],
-      secretKey: SecretKey(chainKey),
-    );
-    return Uint8List.fromList(mac.bytes);
+    final hmacSha256 = crypto.Hmac(crypto.sha256, chainKey);
+    final digest = hmacSha256.convert([messageKeySeed]);
+
+    return Uint8List.fromList(digest.bytes);
   }
 
   @override
   Future<MessageKey> deriveMessageKeys(Uint8List chainKey) async {
     final messageKey = await deriveMessageKey(chainKey);
+
     final keyMaterialBytes = algorithm.deriveSecrets(
         messageKey,
-        whisperMessageKeys.asUint8List(),
+        Uint8List.fromList(utf8.encode('WhisperMessageKeys')),
         cipherKeyByteCount + macKeyByteCount + ivByteCount);
+
     final ciperKeyBytes = keyMaterialBytes.sublist(0, cipherKeyByteCount);
     final macKeyBytes = keyMaterialBytes.sublist(
         cipherKeyByteCount, cipherKeyByteCount + macKeyByteCount);
@@ -76,15 +80,13 @@ class Rachet extends RachetInterface {
 
   @override
   Future<KeyAndChain> deriveNextRootKeyAndChain(
-      rootKey,
+      Uint8List rootKey,
       SimplePublicKey theirEphemeralPublicKey,
       SimpleKeyPair ourEphemeralPrivateKey) async {
-    var sharedSecret = await algorithmx25519.sharedSecretKey(
-        keyPair: ourEphemeralPrivateKey,
-        remotePublicKey:
-            theirEphemeralPublicKey); //  yield crypto.calculateAgreement(theirEphemeralPublicKey, ourEphemeralPrivateKey);
+    final sharedSecret = await axololt.calculateAgreement(
+        ourEphemeralPrivateKey, theirEphemeralPublicKey);
     var derivedSecretBytes = algorithm.deriveSecrets4(
-        Uint8List.fromList(await sharedSecret.extractBytes()),
+        sharedSecret.asUint8List(),
         rootKey,
         whisperRatchet.asUint8List(),
         rootKeyByteCount + chainKeyByteCount);
@@ -96,12 +98,9 @@ class Rachet extends RachetInterface {
 
   @override
   Future<Uint8List> deriveNextChainKey(Uint8List chainKey) async {
-    final hmac = Hmac.sha256();
-    final mac = await hmac.calculateMac(
-      [chainKeySeed],
-      secretKey: SecretKey(chainKey),
-    );
-    return Uint8List.fromList(mac.bytes);
+    final hmacSha256 = crypto.Hmac(crypto.sha256, chainKey);
+    final digest = hmacSha256.convert([chainKeySeed]);
+    return Uint8List.fromList(digest.bytes);
   }
 
   @override

@@ -1,13 +1,18 @@
+import 'dart:ffi';
+import 'dart:typed_data';
+
 import 'package:cryptography/cryptography.dart';
 import 'package:lib_omemo_encrypt/encryptions/axolotl/axolotl_interface.dart';
 import 'package:lib_omemo_encrypt/keys/prekey.dart';
 import 'package:lib_omemo_encrypt/keys/signed_prekey.dart';
 import 'package:lib_omemo_encrypt/keys/bundle/prekey_bundle.dart';
 import 'package:lib_omemo_encrypt/keys/bundle/prekey_package.dart';
+import 'package:lib_omemo_encrypt/utils/array_buffer_utils.dart';
 import 'package:lib_omemo_encrypt/utils/utils.dart';
 
 class Axololt extends AxololtInterface {
-  final algorithm = X25519();
+  final algorithm = Ed25519();
+  final algorithmX25519 = X25519();
   @override
   Future<SimpleKeyPair> generateIdentityKeyPair() async {
     return await algorithm.newKeyPair();
@@ -46,15 +51,24 @@ class Axololt extends AxololtInterface {
   /// There are essentially two ways in which libraries can fulfill these requirements:
   /// Libraries can use a Curve25519 key pair as their internal IdentityKey. In this case, the IdentityKey can be used for X25519 directly, and XEdDSA has to be used to produce EdDSA-compatible signatures. Note that libsignal by default does NOT use XEdDSA. libsignal includes XEdDSA though and has to be modified to use that to be compatible with OMEMO.
   /// Libraries can use an Ed25519 key pair as their internal IdentityKey. In this case, the IdentityKey can create EdDSA-compatible signatures directly, and has to be converted first to perform X25519.
-  Future<SignedPreKey> generateSignedPreKey(
+  Future<SimpleKeyPair> generateSignedPreKey(
       SimpleKeyPair identityKeyPair, int signedPreKeyId) async {
     // Generate a keypair.
-    final algorithmEd25519 = Ed25519();
     final keyPair = await algorithm.newKeyPair();
-    final signature = await algorithmEd25519
-        .sign(await identityKeyPair.extractPrivateKeyBytes(), keyPair: keyPair);
-    return SignedPreKey(
-        id: signedPreKeyId, keyPair: keyPair, signature: signature);
+    return keyPair;
+  }
+
+  @override
+
+  /// Sign using Elliptic Curve Digital Signature Algorithm (ECDSA) using P256
+  Future<Signature> generateSignature(
+      SimpleKeyPair identityKeyPair, SimpleKeyPair signedPreKey) async {
+    // Generate a keypair.
+    final algorithm = Ed25519();
+    final signature = await algorithm.sign(
+        (await signedPreKey.extractPublicKey()).bytes,
+        keyPair: identityKeyPair);
+    return signature;
   }
 
   @override
@@ -72,13 +86,40 @@ class Axololt extends AxololtInterface {
   @override
   Future<PreKeyPackage> generatePreKeysPackage(int preKeyCount) async {
     final identityKeyPair = await generateIdentityKeyPair();
-    const signedPreKeyId = 1;
+    const signedPreKeyPairId = 1;
+    final signedPreKey =
+        await generateSignedPreKey(identityKeyPair, signedPreKeyPairId);
+    final signature = await generateSignature(identityKeyPair, signedPreKey);
     return PreKeyPackage(
         identityKeyPair: identityKeyPair,
         registrationId: generateRegistrationId(),
         preKeys:
             await generatePreKeys(Utils.createRandomSequence(), preKeyCount),
-        signedPreKey:
-            await generateSignedPreKey(identityKeyPair, signedPreKeyId));
+        signedPreKeyPair: signedPreKey,
+        signedPreKeyPairId: signedPreKeyPairId,
+        signature: signature);
+  }
+
+  @override
+  Future<bool> verifySignature(
+      Uint8List data, Uint8List signature, PublicKey publicKey) async {
+    final algorithm = Ed25519();
+    final signatureKey = Signature(signature, publicKey: publicKey);
+
+    final validSignature =
+        await algorithm.verify(data, signature: signatureKey);
+    return validSignature;
+  }
+
+  @override
+  Future<ByteBuffer> calculateAgreement(
+      SimpleKeyPair keypair, PublicKey publicKey) async {
+    final _keyPair = await algorithmX25519
+        .newKeyPairFromSeed((await keypair.extract()).bytes);
+    final _publicKey = SimplePublicKey((publicKey as SimplePublicKey).bytes,
+        type: KeyPairType.x25519);
+    // TODO: implement calculateAgreement
+    return ArrayBufferUtils.getBytesBuffer((await algorithmX25519
+        .sharedSecretKey(keyPair: _keyPair, remotePublicKey: _publicKey)));
   }
 }

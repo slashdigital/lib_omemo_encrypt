@@ -10,7 +10,7 @@ class MemoryStorage extends StorageInterface {
   final String localRegistrationId;
   final SimpleKeyPair localIdentityKeyPair;
   late Iterable<Tuple2<int, PreKey>> localPreKeyPairs;
-  late Iterable<Tuple2<int, SignedPreKey>> localSignedPreKeyPairs = [];
+  late List<Tuple2<int, SignedPreKey>> localSignedPreKeyPairs = [];
   late PreKeyBundle remotePreKeyBundle;
 
   MemoryStorage(
@@ -83,10 +83,8 @@ class MemoryStorage extends StorageInterface {
   void addLocalSignedPreKeyPair(SignedPreKey signedPreKey) {
     final existing = _findExistingById(localSignedPreKeyPairs, signedPreKey.id);
     if (existing == null) {
-      localSignedPreKeyPairs = [
-        ...localSignedPreKeyPairs,
-        Tuple2<int, SignedPreKey>(signedPreKey.id, signedPreKey)
-      ];
+      localSignedPreKeyPairs
+          .add(Tuple2<int, SignedPreKey>(signedPreKey.id, signedPreKey));
     }
   }
 }

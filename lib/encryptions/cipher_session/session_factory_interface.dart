@@ -11,7 +11,7 @@ abstract class SessionFactoryInterface {
   createSessionFromPreKeyBundle(ReceivingPreKeyBundle receivingPreKeyBundle);
   Future<SessionState> initializeAliceSession(
       AliceCipherSessionParams parameters);
-  createSessionFromPreKeyWhisperMessage(
+  Future<SessionCipherState> createSessionFromPreKeyWhisperMessage(
       Session session, Uint8List preKeyWhisperMessageBytes);
   Future<SessionState> initializeBobSession(BobCipherSessionParams parameters);
 }

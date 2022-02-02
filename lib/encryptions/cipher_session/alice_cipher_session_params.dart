@@ -6,8 +6,8 @@ class AliceCipherSessionParams {
   final SimpleKeyPair ourBaseKeyPair;
   final SimpleKeyPair ourIdentityKeyPair;
   final LibOMEMOKey? ourSignedPreKeyPair;
-  final SimpleKeyPair theirIdentityKey;
-  final SimplePublicKey theirSignedPreKey;
+  final SimplePublicKey theirIdentityKey;
+  final PublicKey theirSignedPreKey;
   final PublicKey theirRatchetKey;
   final SimplePublicKey? theirOneTimePreKey;
 

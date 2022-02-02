@@ -72,7 +72,7 @@ class Message extends MessageInterface {
 
   @override
   Uint8List decodeWhisperMessageMacInput(Uint8List listBytes) {
-    return listBytes.sublist(listBytes.length - macByteCount);
+    return listBytes.sublist(0, listBytes.length - macByteCount);
   }
 
   @override
@@ -80,7 +80,7 @@ class Message extends MessageInterface {
       MessageVersion version, KeyExchangeMessage keyExchangeMessage) async {
     var messageBytes = omemo_proto.OMEMOKeyExchange(
             ek: keyExchangeMessage.baseKey.bytes,
-            ik: (await keyExchangeMessage.identityKey.extract()).bytes,
+            ik: keyExchangeMessage.identityKey.bytes,
             registrationId: base64Url.decode(keyExchangeMessage.registrationId),
             pkId: keyExchangeMessage.preKeyId,
             spkId: keyExchangeMessage.signedPreKeyId,
@@ -106,7 +106,8 @@ class Message extends MessageInterface {
             n: message.counter,
             pn: message.previousCounter,
             dhPub: message.ratchetKey.bytes,
-            ciphertext: message.ciphertext.cipherText)
+            ciphertext:
+                message.ciphertext.concatenation(nonce: true, mac: true))
         .writeToBuffer()
         .buffer;
     return ArrayBufferUtils.concat([versionByte, messageBytes]);

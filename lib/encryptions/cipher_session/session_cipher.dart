@@ -1,5 +1,8 @@
 import 'dart:typed_data';
 
+import 'package:convert/convert.dart';
+import 'package:crypto/crypto.dart' as crypto;
+import 'package:lib_omemo_encrypt/encryptions/cbc/cbc.dart';
 import 'package:lib_omemo_encrypt/encryptions/cipher_session/session_cipher_interface.dart';
 import 'package:lib_omemo_encrypt/messages/message.dart';
 import 'package:lib_omemo_encrypt/messages/omemo_message.dart';
@@ -10,9 +13,11 @@ import 'package:lib_omemo_encrypt/sessions/session.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:lib_omemo_encrypt/sessions/session_state.dart';
 import 'package:lib_omemo_encrypt/utils/array_buffer_utils.dart';
+import 'package:lib_omemo_encrypt/utils/log.dart';
 import 'package:tuple/tuple.dart';
 
 const maximumMissedMessages = 2000;
+const tag = 'SessionCipher';
 
 class SessionCipher extends SessionCipherInterface {
   final Rachet rachet = Rachet();
@@ -21,22 +26,25 @@ class SessionCipher extends SessionCipherInterface {
   Future<Tuple2<SessionState, Chain>> clickMainRatchet(
       SessionState sessionState,
       SimplePublicKey theirEphemeralPublicKey) async {
-    final rootKeychain = await rachet.deriveNextRootKeyAndChain(
+    final receiverChain = await rachet.deriveNextRootKeyAndChain(
         sessionState.rootKey,
         theirEphemeralPublicKey,
         sessionState.senderRatchetKeyPair);
-    final ourNewEphemeralKeyPair = await rachet.algorithmx25519.newKeyPair();
-    final nextRootKeychain = await rachet.deriveNextRootKeyAndChain(
-        rootKeychain.rootKey, theirEphemeralPublicKey, ourNewEphemeralKeyPair);
+
+    final ourNewEphemeralKeyPair = await rachet.algorithmEd25519.newKeyPair();
+    final senderChain = await rachet.deriveNextRootKeyAndChain(
+        receiverChain.rootKey, theirEphemeralPublicKey, ourNewEphemeralKeyPair);
+
     final newState = SessionState(
       localIdentityKey: sessionState.localIdentityKey,
       sessionVersion: sessionState.sessionVersion,
       remoteIdentityKey: sessionState.remoteIdentityKey,
-      rootKey: nextRootKeychain.rootKey,
+      rootKey: senderChain.rootKey,
       senderRatchetKeyPair: ourNewEphemeralKeyPair,
-      sendingChain: nextRootKeychain.chain,
+      sendingChain: senderChain.chain,
     );
-    return Tuple2<SessionState, Chain>(newState, rootKeychain.chain);
+    newState.addReceivingChain(theirEphemeralPublicKey, receiverChain.chain);
+    return Tuple2<SessionState, Chain>(newState, receiverChain.chain);
     // var {
     //       rootKey: theirRootKey,
     //       chain: nextReceivingChain
@@ -74,7 +82,7 @@ class SessionCipher extends SessionCipherInterface {
 
   @override
   Future<Uint8List> createWhisperMessage(
-      Session session, dynamic paddedMessage) async {
+      Session session, List<int> paddedMessage) async {
     final messageKeys = await rachet
         .deriveMessageKeys(session.mostRecentState().sendingChain.key);
 
@@ -82,23 +90,17 @@ class SessionCipher extends SessionCipherInterface {
     final algorithm = AesCbc.with256bits(
       macAlgorithm: Hmac.sha256(),
     );
-    final ciphertext = await algorithm.encrypt(paddedMessage,
+    List<int> _paddedMessage = pad(Uint8List.fromList(paddedMessage), 16);
+    final ciphertext = await algorithm.encrypt(_paddedMessage,
         secretKey: SecretKey(messageKeys.cipherKey), nonce: messageKeys.iv);
-    // var messageKeys = yield ratchet.deriveMessageKeys(session.mostRecentState().sendingChain.key);
-    //     // TODO: Should use CTR mode in version 2 of protocol
-    //     var ciphertext = yield crypto.encrypt(messageKeys.cipherKey, paddedMessage, messageKeys.iv);
+
+    Log.instance.d(tag,
+        'ciphertext - mac (secret box): ${ciphertext.mac.bytes.length} : ${ciphertext.mac.bytes}');
+
+    Log.instance.d(tag,
+        'ciphertext - iv (secret box): ${ciphertext.nonce.length} : ${ciphertext.nonce}');
     final MessageVersion version = MessageVersion(
         session.mostRecentState().sessionVersion, currentVersion);
-    //     var version = {
-    //         current: session.mostRecentState().sessionVersion,
-    //         max: ProtocolConstants.currentVersion
-    //     };
-    //     var message = {
-    //         ratchetKey: session.mostRecentState().senderRatchetKeyPair.public,
-    //         counter: session.mostRecentState().sendingChain.index,
-    //         previousCounter: session.mostRecentState().previousCounter,
-    //         ciphertext: ciphertext
-    //     };
     final message = OmemoMessage(
       ratchetKey: await session
           .mostRecentState()
@@ -109,17 +111,20 @@ class SessionCipher extends SessionCipherInterface {
       ciphertext: ciphertext,
     );
 
-    //     var macInputBytes = Messages.encodeWhisperMessageMacInput({
-    //         version: version,
-    //         message: message
-    //     });
+    Log.instance.d(tag, 'Rachet key: ${message.ratchetKey.bytes}');
+    Log.instance.d(tag, 'Counter: ${message.counter}');
+    Log.instance.d(tag, 'previousCounter: ${message.previousCounter}');
+    Log.instance.d(tag, 'ciphertext: ${message.ciphertext}');
 
     final macInputBytes = Message.message.encodeWhisperMessageMacInput(
       version,
       message,
     );
 
-    return Message.message.encodeWhisperMessage(
+    Log.instance.d(tag, 'macInputBytes: $macInputBytes');
+    Log.instance.d(tag, 'messageKeys.macKey: ${messageKeys.macKey}');
+
+    final whisperMessage = Message.message.encodeWhisperMessage(
         version,
         message,
         await getMac(
@@ -128,16 +133,8 @@ class SessionCipher extends SessionCipherInterface {
             session.mostRecentState().sessionVersion,
             session.mostRecentState().localIdentityKey,
             session.mostRecentState().remoteIdentityKey));
-
-    // return Message.message.encodeWhisperMessage();
-
-    //     return Messages.encodeWhisperMessage({
-    //         version: version,
-    //         message: message,
-    //         mac: yield getMac(macInputBytes, messageKeys.macKey, session.mostRecentState().sessionVersion,
-    //             session.mostRecentState().localIdentityKey,
-    //             session.mostRecentState().remoteIdentityKey)
-    //     });
+    Log.instance.d(tag, 'full message: $whisperMessage');
+    return whisperMessage;
   }
 
   @override
@@ -147,17 +144,11 @@ class SessionCipher extends SessionCipherInterface {
         Message.message.decodePreKeyWhisperMessage(omemoExchangeMessageBytes);
     return decryptWhisperMessage(
         session, Uint8List.fromList(keyExchangeMessage.message.message));
-    // var preKeyWhisperMessage = Messages.decodePreKeyWhisperMessage(preKeyWhisperMessageBytes);
-    // return self.decryptWhisperMessage(
-    //     session, preKeyWhisperMessage.message.message);
   }
 
   @override
   decryptWhisperMessage(
       Session session, Uint8List omemoExchangeMessageBytes) async {
-    // // TODO: implement decryptWhisperMessage
-    // throw UnimplementedError();
-    // var newSession = new Session(session);
     final newSession = Session();
     newSession.clone(session.states);
     for (var element in newSession.states) {
@@ -180,25 +171,6 @@ class SessionCipher extends SessionCipherInterface {
       }
     }
     throw Exception("Unable to decrypt message: ");
-    // var newSession = new Session(session);
-    //   var exceptions = [];
-    //   for (var state of newSession.states) {
-    //       var clonedSessionState = new SessionState(state);
-    //       var promise = decryptWhisperMessageWithSessionState(clonedSessionState, whisperMessageBytes);
-    //       var result = yield promise.catch((e) => {
-    //           exceptions.push(e);
-    //       });
-    //       if (result !== undefined) {
-    //           newSession.removeState(state);
-    //           newSession.addState(clonedSessionState);
-    //           return {
-    //               message: result,
-    //               session: newSession
-    //           };
-    //       }
-    //   }
-    //   var messages = exceptions.map((e) => e.toString());
-    //   throw new InvalidMessageException("Unable to decrypt message: " + messages);
   }
 
   @override
@@ -212,6 +184,7 @@ class SessionCipher extends SessionCipherInterface {
     final macInputTypes =
         Message.message.decodeWhisperMessageMacInput(omemoExchangeMessageBytes);
 
+    Log.instance.d(tag, 'Decrypting - macInputTypes: $macInputTypes');
     //     var macInputTypes = Messages.decodeWhisperMessageMacInput(whisperMessageBytes);
 
     //     if (whisperMessage.version.current !== sessionState.sessionVersion) {
@@ -222,11 +195,15 @@ class SessionCipher extends SessionCipherInterface {
     }
     final message = omemoMessage.message;
     final theirEphemeralPublicKey =
-        SimplePublicKey(message.dhPub, type: KeyPairType.x25519);
+        SimplePublicKey(message.dhPub, type: KeyPairType.ed25519);
+    Log.instance.d(tag,
+        'Decrypting - theirEphemeralPublicKey: ${theirEphemeralPublicKey.bytes}');
     final receivingChain =
         await getOrCreateReceivingChain(sessionState, theirEphemeralPublicKey);
-    final messageKeys =
-        await getOrCreateMessageKeys(receivingChain.item2, message.n);
+    final _newSessionState = receivingChain.item1;
+    final messageKeys = await getOrCreateMessageKeys(_newSessionState,
+        theirEphemeralPublicKey, receivingChain.item2, message.n);
+    Log.instance.d(tag, 'Decrypting - messageKeys.mac: ${messageKeys.macKey}');
     final newSessionState = receivingChain.item1;
     final isValid = await isValidMac(
         macInputTypes,
@@ -243,34 +220,15 @@ class SessionCipher extends SessionCipherInterface {
     final algorithm = AesCbc.with256bits(
       macAlgorithm: Hmac.sha256(),
     );
-    final plainText = await algorithm.decrypt(
-        SecretBox(message.ciphertext,
-            nonce: messageKeys.iv, mac: Mac(macInputTypes)),
+    final _plainText = await algorithm.decrypt(
+        SecretBox.fromConcatenation(message.ciphertext,
+            nonceLength: 16, macLength: 32),
         secretKey: SecretKey(messageKeys.cipherKey));
+    final plainText = unpad(Uint8List.fromList(_plainText));
     newSessionState.pending = null;
     return Tuple2<SessionState, Uint8List>(
         newSessionState, Uint8List.fromList(plainText));
     // } catch (e) {
-    // return null;
-    // }
-    //     var message = whisperMessage.message;
-    //     var theirEphemeralPublicKey = message.ratchetKey;
-
-    //     var receivingChain = yield getOrCreateReceivingChain(sessionState, theirEphemeralPublicKey);
-    //     var messageKeys = yield getOrCreateMessageKeys(theirEphemeralPublicKey, receivingChain, message.counter);
-    //     var isValid = yield isValidMac(macInputTypes, messageKeys.macKey, whisperMessage.version.current,
-    //         sessionState.remoteIdentityKey, sessionState.localIdentityKey, whisperMessage.mac);
-
-    //     if (!isValid) {
-    //         throw new InvalidMessageException("Bad mac");
-    //     }
-
-    //     // TODO: Support for version 2: Use CTR mode instead of CBC
-    //     var plaintext = yield crypto.decrypt(messageKeys.cipherKey, message.ciphertext, messageKeys.iv);
-
-    //     sessionState.pendingPreKey = null;
-
-    //     return plaintext;
   }
 
   @override
@@ -279,10 +237,7 @@ class SessionCipher extends SessionCipherInterface {
     final newSession = Session();
     newSession.clone(session.states);
     final whisperMessage = await createWhisperMessage(newSession, message);
-    // is.encryptMessage = co.wrap(function*(session, message) {
-    //     var newSession = new Session(session);
-    //     var whisperMessage = yield createWhisperMessage(newSession, message);
-    rachet.clickSubRachet(newSession.mostRecentState().sendingChain);
+    await rachet.clickSubRachet(newSession.mostRecentState().sendingChain);
     if (newSession.mostRecentState().pending != null) {
       return EncryptedMessage(
           isPreKeyWhisperMessage: true,
@@ -294,23 +249,6 @@ class SessionCipher extends SessionCipherInterface {
           body: whisperMessage,
           session: newSession);
     }
-
-    //     yield ratchet.clickSubRatchet(newSession.mostRecentState().sendingChain);
-
-    //     if (newSession.mostRecentState().pendingPreKey) {
-    //         return {
-    //             isPreKeyWhisperMessage: true,
-    //             body: createPreKeyWhisperMessage(newSession, whisperMessage),
-    //             session: newSession
-    //         };
-    //     } else {
-    //         return {
-    //             isPreKeyWhisperMessage: false,
-    //             body: whisperMessage,
-    //             session: newSession
-    //         };
-    //     }
-    // });
   }
 
   @override
@@ -318,28 +256,46 @@ class SessionCipher extends SessionCipherInterface {
       Uint8List data,
       Uint8List macKey,
       int messageVersion,
-      SimpleKeyPair senderIdentityKey,
-      SimpleKeyPair receiverIdentityKey) async {
-    List<ByteBuffer> macInputs = (messageVersion >= 3)
-        ? [
-            Uint8List.fromList((await senderIdentityKey.extract()).bytes)
-                .buffer,
-            Uint8List.fromList((await receiverIdentityKey.extract()).bytes)
-                .buffer
-          ]
-        : [];
-    macInputs.add(data.buffer);
-    final hmac = Hmac.sha256();
+      SimplePublicKey senderIdentityKey,
+      SimplePublicKey receiverIdentityKey) async {
+    final mac = crypto.Hmac(crypto.sha256, macKey);
 
-    final mac = await hmac.calculateMac(
-      ArrayBufferUtils.concat(macInputs),
-      secretKey: SecretKey(macKey),
-    );
-    return Uint8List.fromList(mac.bytes.sublist(0, macByteCount));
+    // final mac = await hmac.calculateMac(
+    //   ArrayBufferUtils.concat(macInputs),
+    //   secretKey: SecretKey(macKey),
+    // );
+
+    final output = AccumulatorSink<crypto.Digest>();
+    if (messageVersion >= 3) {
+      mac.startChunkedConversion(output)
+        ..add(senderIdentityKey.bytes)
+        ..add(receiverIdentityKey.bytes)
+        ..add(data)
+        ..close();
+    } else {
+      mac.startChunkedConversion(output)
+        ..add(data)
+        ..close();
+    }
+    final fullMac = Uint8List.fromList(output.events.single.bytes);
+    Log.instance
+        .d(tag, 'macInputs - senderIdentityKey: ${senderIdentityKey.bytes}');
+    Log.instance.d(
+        tag, 'macInputs - receiverIdentityKey: ${receiverIdentityKey.bytes}');
+    Log.instance.d(tag, 'macInputs - data: $data');
+    Log.instance.d(tag, 'full Mac: $fullMac');
+    Log.instance.d(tag,
+        'short Mac: ${Uint8List.fromList(fullMac.sublist(0, macByteCount))}');
+    return fullMac.sublist(0, macByteCount);
+
+    // return Uint8List.fromList(mac.bytes.sublist(0, macByteCount));
   }
 
   @override
-  Future<MessageKey> getOrCreateMessageKeys(Chain chain, int counter) async {
+
+  /// Chain will reference from passing to out, expecting index + 1
+  Future<MessageKey> getOrCreateMessageKeys(SessionState sessionState,
+      SimplePublicKey theirEphemeralPublicKey, Chain chain, int counter) async {
     if (chain.index > counter) {
       // The message is an old message that has been delivered out of order. We should still have the message
       // key cached unless this is a duplicate message that we've seen before.
@@ -362,9 +318,16 @@ class SessionCipher extends SessionCipherInterface {
             await rachet.deriveMessageKeys(chain.key);
         await rachet.clickSubRachet(chain);
       }
-      var messageKeys = await rachet.deriveMessageKeys(chain.key);
       // As we have received the message, we should click the sub ratchet forwards so we can't decrypt it again
+
+      Log.instance.d(tag, 'Before - _chain index: ${chain.index}');
+      Log.instance.d(tag, 'Before - _chain key: ${chain.key}');
+      var messageKeys = await rachet.deriveMessageKeys(chain.key);
       await rachet.clickSubRachet(chain);
+      // Set next chain
+      sessionState.setReceivingChain(theirEphemeralPublicKey, chain);
+      Log.instance.d(tag, 'After - _chain index: ${chain.index}');
+      Log.instance.d(tag, 'After - _chain key: ${chain.key}');
       return messageKeys;
     }
   }
@@ -386,11 +349,13 @@ class SessionCipher extends SessionCipherInterface {
       Uint8List data,
       Uint8List macKey,
       int messageVersion,
-      SimpleKeyPair senderIdentityKey,
-      SimpleKeyPair receiverIdentityKey,
+      SimplePublicKey senderIdentityKey,
+      SimplePublicKey receiverIdentityKey,
       Uint8List theirMac) async {
     var ourMac = await getMac(
         data, macKey, messageVersion, senderIdentityKey, receiverIdentityKey);
-    return ourMac == theirMac;
+    Log.instance.d(tag, 'ourmac: $ourMac');
+    Log.instance.d(tag, 'theirMac: $theirMac');
+    return crypto.Digest(ourMac) == crypto.Digest(theirMac);
   }
 }

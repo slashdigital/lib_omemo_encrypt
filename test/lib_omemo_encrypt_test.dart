@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+
+import 'package:cryptography/cryptography.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lib_omemo_encrypt/encryptions/cipher_session/session_cipher.dart';
 import 'package:lib_omemo_encrypt/keys/bundle/prekey_bundle.dart';
@@ -20,6 +23,11 @@ void main() {
     encryption = Axololt();
   });
   test('should generate prekeys and verify one prekey bundle', () async {
+    /// You get
+    /// - prekey
+    /// - signedprekey
+    /// - signature (sign signedprekey public key) by identity key
+    /// - identity key
     final alicekeyPackage =
         await encryption.generatePreKeysPackage(_COUNT_PREKEYS);
     // ### 1. Alice start application and init store and keys
@@ -66,6 +74,12 @@ void main() {
 
     // ### 3. Bob want to message to alice
     /// Protocol OMEMO | 5.2 Discovering peer support (https://xmpp.org/extensions/xep-0384.html#protobuf-schema)
+    ///
+    /// You get
+    /// - prekey
+    /// - signedprekey
+    /// - signature (sign signedprekey public key) by identity key
+    /// - identity key
     final bobKeyPackage =
         await encryption.generatePreKeysPackage(_COUNT_PREKEYS);
     // ### 3.1 Bob request to server for alice Key
@@ -86,29 +100,24 @@ void main() {
     final bobReceivingPreKeyId = alicekeyPackage.preKeys[0].id;
     final bobReceivingPreKeyPublic =
         await alicekeyPackage.preKeys[0].keyPair!.extractPublicKey();
-    final bobReceivingSignKey = alicekeyPackage.signedPreKey;
+    final bobReceivingSignKey = alicekeyPackage.signedPreKeyPair;
     final bobReceivingIdentityKey = alicekeyPackage.identityKeyPair;
+    final bobReceivingSignKeyId = alicekeyPackage.signedPreKeyPairId;
+    final signature = alicekeyPackage.signature;
     // ### 3.3 Bob construct the receiving prekey bundle
 
     // Alice set key for Bob # use key 0
     const bobAliceUserId = 'alice@example.co';
     final bobReceivingBundle = ReceivingPreKeyBundle(
         userId: bobAliceUserId,
-        identityKeyPair: bobReceivingIdentityKey,
+        identityKey: await bobReceivingIdentityKey.extractPublicKey(),
         registrationId: bobKeyPackage.registrationId,
         preKey: bobReceivingPreKeyPublic,
-        signedPreKey: bobReceivingSignKey,
+        signedPreKey: await bobReceivingSignKey.extractPublicKey(),
         preKeyId: bobReceivingPreKeyId,
-        signedPreKeyId: bobReceivingSignKey.id);
+        signedPreKeyId: bobReceivingSignKeyId,
+        signature: Uint8List.fromList(signature.bytes));
 
-    // final bob_PreKeyBundleForAlice = PreKeyBundle(
-    //     userId: bobAliceUserId,
-    //     identityKeyPair: alicekeyPackage.identityKeyPair,
-    //     registrationId: alicekeyPackage.registrationId,
-    //     preKey: bob_receivingPreKey,
-    //     signedPreKey: bobReceivingSignKey,
-    //     preKeyId: bob_receivingPreKey.id,
-    //     signedPreKeyId: bobReceivingSignKey.id);
     // ### 3.4 ? bob store alice prekey in his local storage
     final bobStore = MemoryStorage(
       localRegistrationId: bobKeyPackage.registrationId,
@@ -176,8 +185,9 @@ void main() {
     final aliceReceivingPreKeyId = bobKeyPackage.preKeys[0].id;
     final aliceReceivingPreKeyPublic =
         await bobKeyPackage.preKeys[0].keyPair!.extractPublicKey();
-    final aliceReceivingSignKey = bobKeyPackage.signedPreKey;
+    final aliceReceivingSignKey = bobKeyPackage.signedPreKeyPair;
     final aliceReceivingIdentityKey = bobKeyPackage.identityKeyPair;
+    final aliceReceivingSignKeyId = bobKeyPackage.signedPreKeyPairId;
 
     // ### 7.2 Alice construct the receiving prekey bundle
 
@@ -185,24 +195,47 @@ void main() {
     const aliceBobUserId = 'bob@example.co';
     final aliceReceivingBundle = ReceivingPreKeyBundle(
         userId: aliceBobUserId,
-        identityKeyPair: aliceReceivingIdentityKey,
+        identityKey: await aliceReceivingIdentityKey.extractPublicKey(),
         registrationId: bobKeyPackage.registrationId,
         preKey: aliceReceivingPreKeyPublic,
-        signedPreKey: aliceReceivingSignKey,
+        signedPreKey: await aliceReceivingSignKey.extractPublicKey(),
         preKeyId: aliceReceivingPreKeyId,
-        signedPreKeyId: aliceReceivingSignKey.id);
+        signedPreKeyId: aliceReceivingSignKeyId,
+        signature: Uint8List.fromList(bobKeyPackage.signature.bytes));
     // ### 7.2 Alice construct the receiving prekey bundle
 
     // ### 8 Alice try to init the first cipher session
 
+    aliceStore.addLocalSignedPreKeyPair(SignedPreKey(
+        id: alicekeyPackage.signedPreKeyPairId,
+        keyPair: alicekeyPackage.signedPreKeyPair,
+        signature: alicekeyPackage.signature));
+
     final aliceSessionFactory = SessionFactory(store: aliceStore);
-    final aliceSession = await aliceSessionFactory
-        .createSessionFromPreKeyBundle(aliceReceivingBundle);
-    // ### 9. Alice has the session now try to decrypt message
+    final _aliceSession = Session(); //await aliceSessionFactory
+    // .createSessionFromPreKeyBundle(aliceReceivingBundle);
+
+    final aliceSession =
+        await aliceSessionFactory.createSessionFromPreKeyWhisperMessage(
+            _aliceSession, encryptedMessage.body);
+    // // ### 9. Alice has the session now try to decrypt message
     final aliceCipherSession = SessionCipher();
-    final decryptedMessage = await aliceCipherSession
-        .decryptPreKeyWhisperMessage(aliceSession, encryptedMessage.body);
-    log.d(tag, decryptedMessage);
+    // final decryptedMessage =
+    //     await aliceCipherSession.decryptPreKeyWhisperMessage(
+    //         aliceSession.session, encryptedMessage.body);
+    // log.d(tag, decryptedMessage);
+
+    // convo
+    final aliceEncMsgA = await aliceCipherSession.encryptMessage(
+        aliceSession.session, Utils.convertStringToBytes('Hello Bob'));
+
+    /// Bob decrypt it?
+    ///
+    final plaintext = aliceEncMsgA.isPreKeyWhisperMessage
+        ? await bobCipherSession.decryptPreKeyWhisperMessage(
+            bobSession, aliceEncMsgA.body)
+        : await bobCipherSession.decryptWhisperMessage(
+            bobSession, aliceEncMsgA.body);
     expect(true, true);
   });
 }

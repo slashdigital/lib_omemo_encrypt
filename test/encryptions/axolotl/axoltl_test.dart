@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lib_omemo_encrypt/lib_omemo_encrypt.dart';
@@ -31,14 +33,32 @@ void main() {
     expect(signedPreKey.runtimeType, SignedPreKey);
   });
   test('should verify signed pre key signature', () async {
-    final algorithmEd25519 = Ed25519();
+    // final algorithm = Ecdsa.p256(Sha256());
+
+    final identityKeyPair = await encryption.generateIdentityKeyPair();
+    final signedPreKey =
+        await encryption.generateSignedPreKey(identityKeyPair, 1);
+    final signature =
+        await encryption.generateSignature(identityKeyPair, signedPreKey);
+
+    final validSignature = await encryption.verifySignature(
+        Uint8List.fromList((await signedPreKey.extractPublicKey()).bytes),
+        Uint8List.fromList(signature.bytes),
+        await identityKeyPair.extractPublicKey());
+
+    expect(validSignature, true);
+  });
+  test('should calculate the agreement between identity key and public key',
+      () async {
+    // final algorithm = Ecdsa.p256(Sha256());
+
     final identityKeyPair = await encryption.generateIdentityKeyPair();
     final signedPreKey =
         await encryption.generateSignedPreKey(identityKeyPair, 1);
 
-    final validSignature = await algorithmEd25519.verify(
-        (await identityKeyPair.extractPrivateKeyBytes()).toList(),
-        signature: signedPreKey.signature);
-    expect(validSignature, true);
+    final agreement1 = await encryption.calculateAgreement(
+        identityKeyPair, (await signedPreKey.extractPublicKey()));
+
+    expect(agreement1.lengthInBytes, 32);
   });
 }

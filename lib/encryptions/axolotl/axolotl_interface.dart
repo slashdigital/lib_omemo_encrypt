@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:cryptography/cryptography.dart';
 import 'package:lib_omemo_encrypt/keys/prekey.dart';
 import 'package:lib_omemo_encrypt/keys/signed_prekey.dart';
@@ -9,11 +11,17 @@ abstract class AxololtInterface {
   String generateRegistrationId();
   Future<List<PreKey>> generatePreKeys(int start, int count);
   Future<PreKey> generateLastResortPreKey();
-  Future<SignedPreKey> generateSignedPreKey(
+  Future<SimpleKeyPair> generateSignedPreKey(
       SimpleKeyPair identityKeyPair, int signedPreKeyId);
+  Future<Signature> generateSignature(
+      SimpleKeyPair identityKeyPair, SimpleKeyPair signedPreKey);
+  Future<bool> verifySignature(
+      Uint8List data, Uint8List signature, SimplePublicKey publicKey);
   Future<PreKeyPackage> generatePreKeysPackage(int preKeyCount);
   // Encrypt
   encryptMessage();
   // Decrypt
   decryptPreKeyWhisperMessage();
+  Future<ByteBuffer> calculateAgreement(
+      SimpleKeyPair keypair, PublicKey publicKey);
 }

@@ -21,4 +21,9 @@ class Utils {
     final List<int> bytes = utf8.encode(message);
     return bytes;
   }
+
+  static String convertBytesToString(List<int> bytes) {
+    final String message = utf8.decode(bytes);
+    return message;
+  }
 }

@@ -20,18 +20,19 @@ abstract class SessionCipherInterface {
       Uint8List data,
       Uint8List macKey,
       int messageVersion,
-      SimpleKeyPair senderIdentityKey,
-      SimpleKeyPair receiverIdentityKey,
+      SimplePublicKey senderIdentityKey,
+      SimplePublicKey receiverIdentityKey,
       Uint8List theirMac);
   Future<List<int>> getMac(Uint8List data, Uint8List macKey, int messageVersion,
-      SimpleKeyPair senderIdentityKey, SimpleKeyPair receiverIdentityKey);
+      SimplePublicKey senderIdentityKey, SimplePublicKey receiverIdentityKey);
   Future<Uint8List> createWhisperMessage(
       Session session, Uint8List paddedMessage);
   Future<Uint8List> createPreKeyWhisperMessage(
       Session session, Uint8List whisperMessage);
   Future<Tuple2<SessionState, Chain>> getOrCreateReceivingChain(
       SessionState sessionState, SimplePublicKey theirEphemeralPublicKey);
-  Future<MessageKey> getOrCreateMessageKeys(Chain chain, int counter);
+  Future<MessageKey> getOrCreateMessageKeys(SessionState sessionState,
+      SimplePublicKey theirEphemeralPublicKey, Chain chain, int counter);
   Future<Tuple2<SessionState, Chain>> clickMainRatchet(
       SessionState sessionState, SimplePublicKey theirEphemeralPublicKey);
 }

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:lib_omemo_encrypt/constants/constant.dart';
+import 'package:lib_omemo_encrypt/encryptions/axolotl/axolotl.dart';
 import 'package:lib_omemo_encrypt/encryptions/cipher_session/bob_cipher_session_params.dart';
 
 import 'package:lib_omemo_encrypt/encryptions/cipher_session/session_factory_interface.dart';
@@ -40,17 +41,19 @@ class SessionFactory extends SessionFactoryInterface {
   final algorithmx25519 = X25519();
   final algorithmEd25519 = Ed25519();
   final StorageInterface store;
+  final Axololt axololt = Axololt();
 
   SessionFactory({required this.store});
 
   @override
-  createSessionFromPreKeyBundle(
+  Future<Session> createSessionFromPreKeyBundle(
       ReceivingPreKeyBundle receivingPreKeyBundle) async {
     if (receivingPreKeyBundle.signedPreKey != null) {
+      final signatureKey = Signature(receivingPreKeyBundle.signature,
+          publicKey: receivingPreKeyBundle.identityKey);
       final validSignature = await algorithmEd25519.verify(
-          (await receivingPreKeyBundle.identityKeyPair
-              .extractPrivateKeyBytes()),
-          signature: receivingPreKeyBundle.signedPreKey!.signature);
+          receivingPreKeyBundle.signedPreKey!.bytes,
+          signature: signatureKey);
 
       if (!validSignature) {
         throw InvalidKeyException('Invalid signature on device key');
@@ -61,9 +64,9 @@ class SessionFactory extends SessionFactoryInterface {
       throw InvalidKeyException('Both signed and unsigned pre keys are absent');
     }
     final supportsV3 = receivingPreKeyBundle.signedPreKey != null;
-    final ourBaseKeyPair = await algorithmx25519.newKeyPair();
-    final SimplePublicKey theirSignedPreKey = supportsV3
-        ? await receivingPreKeyBundle.signedPreKey!.keyPair!.extractPublicKey()
+    final ourBaseKeyPair = await algorithmEd25519.newKeyPair();
+    final PublicKey theirSignedPreKey = supportsV3
+        ? receivingPreKeyBundle.signedPreKey!
         : receivingPreKeyBundle.preKey;
 
     final aliceParameters = AliceCipherSessionParams(
@@ -71,7 +74,7 @@ class SessionFactory extends SessionFactoryInterface {
         ourBaseKeyPair: ourBaseKeyPair,
         ourIdentityKeyPair: store.getLocalIdentityKeyPair(),
         ourSignedPreKeyPair: null,
-        theirIdentityKey: receivingPreKeyBundle.identityKeyPair,
+        theirIdentityKey: receivingPreKeyBundle.identityKey,
         theirSignedPreKey: theirSignedPreKey,
         theirRatchetKey: theirSignedPreKey,
         theirOneTimePreKey: supportsV3 ? receivingPreKeyBundle.preKey : null);
@@ -91,28 +94,20 @@ class SessionFactory extends SessionFactoryInterface {
   @override
   Future<SessionState> initializeAliceSession(
       AliceCipherSessionParams parameters) async {
-    final sendingRatchetKeyPair = await algorithmx25519.newKeyPair();
-    final agreement1 = await ArrayBufferUtils.getBytesBuffer(
-        (await algorithmx25519.sharedSecretKey(
-            keyPair: parameters.ourIdentityKeyPair,
-            remotePublicKey: parameters.theirSignedPreKey)));
-    final agreement2 = await ArrayBufferUtils.getBytesBuffer(
-        (await algorithmx25519.sharedSecretKey(
-            keyPair: parameters.ourBaseKeyPair,
-            remotePublicKey:
-                await parameters.theirIdentityKey.extractPublicKey())));
-    final agreement3 = await ArrayBufferUtils.getBytesBuffer(
-        (await algorithmx25519.sharedSecretKey(
-            keyPair: parameters.ourBaseKeyPair,
-            remotePublicKey: parameters.theirSignedPreKey)));
+    final sendingRatchetKeyPair = await algorithmEd25519.newKeyPair();
+    final agreement1 = await axololt.calculateAgreement(
+        parameters.ourIdentityKeyPair, parameters.theirSignedPreKey);
+    final agreement2 = await axololt.calculateAgreement(
+        parameters.ourBaseKeyPair, parameters.theirIdentityKey);
+    final agreement3 = await axololt.calculateAgreement(
+        parameters.ourBaseKeyPair, parameters.theirSignedPreKey);
+
     final agreements = [agreement1, agreement2, agreement3];
 
     if (parameters.sessionVersion >= 3 &&
         parameters.theirOneTimePreKey != null) {
-      final agreement4 = await ArrayBufferUtils.getBytesBuffer(
-          (await algorithmx25519.sharedSecretKey(
-              keyPair: parameters.ourBaseKeyPair,
-              remotePublicKey: parameters.theirOneTimePreKey!)));
+      final agreement4 = await axololt.calculateAgreement(
+          parameters.ourBaseKeyPair, parameters.theirOneTimePreKey!);
       agreements.add(agreement4);
     }
     final KeyAndChain initialRootKeyChain = rachet.deriveInitialRootKeyAndChain(
@@ -122,7 +117,7 @@ class SessionFactory extends SessionFactoryInterface {
     final SessionState sessionState = SessionState(
       sessionVersion: parameters.sessionVersion,
       remoteIdentityKey: parameters.theirIdentityKey,
-      localIdentityKey: parameters.ourIdentityKeyPair,
+      localIdentityKey: await parameters.ourIdentityKeyPair.extractPublicKey(),
       rootKey: nextRootKeyChain.rootKey,
       sendingChain: nextRootKeyChain.chain,
       senderRatchetKeyPair: sendingRatchetKeyPair,
@@ -133,7 +128,7 @@ class SessionFactory extends SessionFactoryInterface {
   }
 
   @override
-  createSessionFromPreKeyWhisperMessage(
+  Future<SessionCipherState> createSessionFromPreKeyWhisperMessage(
       Session session, Uint8List preKeyWhisperMessageBytes) async {
     final preKeyWhisperMessage =
         Message.message.decodePreKeyWhisperMessage(preKeyWhisperMessageBytes);
@@ -182,9 +177,9 @@ class SessionFactory extends SessionFactoryInterface {
 
     final bobParameters = BobCipherSessionParams(
         sessionVersion: preKeyWhisperMessage.version.current,
-        theirBaseKey: SimplePublicKey(message.ek, type: KeyPairType.x25519),
-        theirIdentityKey: await algorithmx25519.newKeyPairFromSeed(
-            message.ik), //(message.ik, type: KeyPairType.x25519),
+        theirBaseKey: SimplePublicKey(message.ek, type: KeyPairType.ed25519),
+        theirIdentityKey:
+            SimplePublicKey(message.ik, type: KeyPairType.ed25519),
         ourIdentityKeyPair: store.getLocalIdentityKeyPair(),
         ourSignedPreKeyPair: ourSignedPreKeyPair,
         ourRatchetKeyPair: ourSignedPreKeyPair,
@@ -201,11 +196,12 @@ class SessionFactory extends SessionFactoryInterface {
     // };
     final sessionState = await initializeBobSession(bobParameters);
     sessionState.theirBaseKey =
-        SimplePublicKey(message.ek, type: KeyPairType.x25519);
+        SimplePublicKey(message.ek, type: KeyPairType.ed25519);
     final clonedSession = Session();
     clonedSession.clone(session.states);
     clonedSession.addState(sessionState);
-    return SessionCipherState(session, message.ik, message.registrationId);
+    return SessionCipherState(
+        clonedSession, message.ik, message.registrationId);
 
     // var sessionState = yield initializeBobSession(bobParameters);
     // sessionState.theirBaseKey = message.baseKey;
@@ -221,19 +217,13 @@ class SessionFactory extends SessionFactoryInterface {
   @override
   Future<SessionState> initializeBobSession(
       BobCipherSessionParams parameters) async {
-    final agreement1 = await ArrayBufferUtils.getBytesBuffer(
-        (await algorithmx25519.sharedSecretKey(
-            keyPair: parameters.ourSignedPreKeyPair.keyPair!,
-            remotePublicKey:
-                await parameters.theirIdentityKey.extractPublicKey())));
-    final agreement2 = await ArrayBufferUtils.getBytesBuffer(
-        (await algorithmx25519.sharedSecretKey(
-            keyPair: parameters.ourIdentityKeyPair,
-            remotePublicKey: parameters.theirBaseKey)));
-    final agreement3 = await ArrayBufferUtils.getBytesBuffer(
-        (await algorithmx25519.sharedSecretKey(
-            keyPair: parameters.ourSignedPreKeyPair.keyPair!,
-            remotePublicKey: parameters.theirBaseKey)));
+    final agreement1 = await axololt.calculateAgreement(
+        parameters.ourSignedPreKeyPair.keyPair!, parameters.theirIdentityKey);
+    final agreement2 = await axololt.calculateAgreement(
+        parameters.ourIdentityKeyPair, parameters.theirBaseKey);
+    final agreement3 = await axololt.calculateAgreement(
+        parameters.ourSignedPreKeyPair.keyPair!, parameters.theirBaseKey);
+
     final agreements = [agreement1, agreement2, agreement3];
     //  var agreements = [
     //         crypto.calculateAgreement(parameters.theirIdentityKey, parameters.ourSignedPreKeyPair.private),
@@ -242,10 +232,8 @@ class SessionFactory extends SessionFactoryInterface {
     //     ];
     if (parameters.sessionVersion >= 3 &&
         parameters.ourOneTimePreKeyPair != null) {
-      final agreement4 = await ArrayBufferUtils.getBytesBuffer(
-          (await algorithmx25519.sharedSecretKey(
-              keyPair: parameters.ourOneTimePreKeyPair!.keyPair!,
-              remotePublicKey: parameters.theirBaseKey)));
+      final agreement4 = await axololt.calculateAgreement(
+          parameters.ourOneTimePreKeyPair!.keyPair!, parameters.theirBaseKey);
       agreements.add(agreement4);
     }
 
@@ -272,7 +260,7 @@ class SessionFactory extends SessionFactoryInterface {
     final SessionState sessionState = SessionState(
       sessionVersion: parameters.sessionVersion,
       remoteIdentityKey: parameters.theirIdentityKey,
-      localIdentityKey: parameters.ourIdentityKeyPair,
+      localIdentityKey: await parameters.ourIdentityKeyPair.extractPublicKey(),
       rootKey: initialRootKeyChain.rootKey,
       sendingChain: initialRootKeyChain.chain,
       senderRatchetKeyPair: parameters.ourRatchetKeyPair.keyPair!,

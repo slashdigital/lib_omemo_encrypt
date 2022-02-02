@@ -4,7 +4,7 @@ import 'package:lib_omemo_encrypt/lib_omemo_encrypt.dart';
 class BobCipherSessionParams {
   final int sessionVersion;
   final SimplePublicKey theirBaseKey;
-  final SimpleKeyPair theirIdentityKey;
+  final SimplePublicKey theirIdentityKey;
   final SignedPreKey ourSignedPreKeyPair;
   final SimpleKeyPair ourIdentityKeyPair;
   final SignedPreKey ourRatchetKeyPair;
