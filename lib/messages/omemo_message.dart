@@ -43,3 +43,10 @@ class EncryptedMessage {
       required this.body,
       required this.session});
 }
+
+class DecryptedMessage {
+  final Uint8List plainText;
+  final Session session;
+
+  const DecryptedMessage({required this.plainText, required this.session});
+}

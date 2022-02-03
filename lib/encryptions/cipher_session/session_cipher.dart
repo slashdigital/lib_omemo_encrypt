@@ -123,7 +123,7 @@ class SessionCipher extends SessionCipherInterface {
   }
 
   @override
-  decryptPreKeyWhisperMessage(
+  Future<DecryptedMessage> decryptPreKeyWhisperMessage(
       Session session, Uint8List omemoExchangeMessageBytes) {
     final keyExchangeMessage =
         Message.message.decodePreKeyWhisperMessage(omemoExchangeMessageBytes);
@@ -132,7 +132,7 @@ class SessionCipher extends SessionCipherInterface {
   }
 
   @override
-  decryptWhisperMessage(
+  Future<DecryptedMessage> decryptWhisperMessage(
       Session session, Uint8List omemoExchangeMessageBytes) async {
     final newSession = Session();
     newSession.clone(session.states);
@@ -149,10 +149,7 @@ class SessionCipher extends SessionCipherInterface {
       if (result != null) {
         newSession.removeState(element);
         newSession.addState(result.item1);
-        return {
-          'message': result,
-          'session': newSession,
-        };
+        return DecryptedMessage(session: newSession, plainText: result.item2);
       }
     }
     throw Exception("Unable to decrypt message: ");

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
@@ -254,6 +255,6 @@ void main() {
     //         bobSession, aliceEncMsgA.body)
     //     : await bobCipherSession.decryptWhisperMessage(
     //         bobSession, aliceEncMsgA.body);
-    expect(true, true);
+    expect(bobMessageToAlice, utf8.decode(decryptedMessage.plainText));
   });
 }

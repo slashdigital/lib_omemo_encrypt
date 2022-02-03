@@ -12,7 +12,8 @@ abstract class SessionCipherInterface {
   Future<EncryptedMessage> encryptMessage(Session session, List<int> message);
   decryptPreKeyWhisperMessage(
       Session session, Uint8List omemoExchangeMessageBytes);
-  decryptWhisperMessage(Session session, Uint8List omemoExchangeMessageBytes);
+  Future<DecryptedMessage> decryptWhisperMessage(
+      Session session, Uint8List omemoExchangeMessageBytes);
   Future<Tuple2<SessionState, Uint8List>?>
       decryptWhisperMessageWithSessionState(
           SessionState sessionState, Uint8List omemoExchangeMessageBytes);
