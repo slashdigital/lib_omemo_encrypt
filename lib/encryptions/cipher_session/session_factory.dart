@@ -39,7 +39,6 @@ class SessionCipherState {
 class SessionFactory extends SessionFactoryInterface {
   final Rachet rachet = Rachet();
   final algorithmx25519 = X25519();
-  final algorithmEd25519 = Ed25519();
   final StorageInterface store;
   final Axololt axololt = Axololt();
 
@@ -49,11 +48,10 @@ class SessionFactory extends SessionFactoryInterface {
   Future<Session> createSessionFromPreKeyBundle(
       ReceivingPreKeyBundle receivingPreKeyBundle) async {
     if (receivingPreKeyBundle.signedPreKey != null) {
-      final signatureKey = Signature(receivingPreKeyBundle.signature,
-          publicKey: receivingPreKeyBundle.identityKey);
-      final validSignature = await algorithmEd25519.verify(
-          receivingPreKeyBundle.signedPreKey!.bytes,
-          signature: signatureKey);
+      final data =
+          Uint8List.fromList(receivingPreKeyBundle.signedPreKey!.bytes);
+      final validSignature = await axololt.verifySignature(data,
+          receivingPreKeyBundle.signature, receivingPreKeyBundle.identityKey);
 
       if (!validSignature) {
         throw InvalidKeyException('Invalid signature on device key');
@@ -64,7 +62,7 @@ class SessionFactory extends SessionFactoryInterface {
       throw InvalidKeyException('Both signed and unsigned pre keys are absent');
     }
     final supportsV3 = receivingPreKeyBundle.signedPreKey != null;
-    final ourBaseKeyPair = await algorithmEd25519.newKeyPair();
+    final ourBaseKeyPair = await algorithmx25519.newKeyPair();
     final PublicKey theirSignedPreKey = supportsV3
         ? receivingPreKeyBundle.signedPreKey!
         : receivingPreKeyBundle.preKey;
@@ -94,7 +92,7 @@ class SessionFactory extends SessionFactoryInterface {
   @override
   Future<SessionState> initializeAliceSession(
       AliceCipherSessionParams parameters) async {
-    final sendingRatchetKeyPair = await algorithmEd25519.newKeyPair();
+    final sendingRatchetKeyPair = await algorithmx25519.newKeyPair();
     final agreement1 = await axololt.calculateAgreement(
         parameters.ourIdentityKeyPair, parameters.theirSignedPreKey);
     final agreement2 = await axololt.calculateAgreement(

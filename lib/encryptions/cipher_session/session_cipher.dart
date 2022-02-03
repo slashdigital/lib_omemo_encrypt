@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart' as crypto;
+import 'package:lib_omemo_encrypt/encryptions/axolotl/axolotl.dart';
 import 'package:lib_omemo_encrypt/encryptions/cbc/cbc.dart';
 import 'package:lib_omemo_encrypt/encryptions/cipher_session/session_cipher_interface.dart';
 import 'package:lib_omemo_encrypt/messages/message.dart';
@@ -21,6 +22,7 @@ const tag = 'SessionCipher';
 
 class SessionCipher extends SessionCipherInterface {
   final Rachet rachet = Rachet();
+  final axololt = Axololt();
 
   @override
   Future<Tuple2<SessionState, Chain>> clickMainRatchet(
@@ -31,7 +33,8 @@ class SessionCipher extends SessionCipherInterface {
         theirEphemeralPublicKey,
         sessionState.senderRatchetKeyPair);
 
-    final ourNewEphemeralKeyPair = await rachet.algorithmEd25519.newKeyPair();
+    final ourNewEphemeralKeyPair = await axololt.generateKeyPair();
+
     final senderChain = await rachet.deriveNextRootKeyAndChain(
         receiverChain.rootKey, theirEphemeralPublicKey, ourNewEphemeralKeyPair);
 
@@ -195,7 +198,7 @@ class SessionCipher extends SessionCipherInterface {
     }
     final message = omemoMessage.message;
     final theirEphemeralPublicKey =
-        SimplePublicKey(message.dhPub, type: KeyPairType.ed25519);
+        SimplePublicKey(message.dhPub, type: KeyPairType.x25519);
     Log.instance.d(tag,
         'Decrypting - theirEphemeralPublicKey: ${theirEphemeralPublicKey.bytes}');
     final receivingChain =

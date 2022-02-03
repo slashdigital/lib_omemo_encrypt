@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:core';
 
+import 'dart:typed_data';
+
 class Utils {
   static final Random _random = Random.secure();
 
@@ -9,6 +11,11 @@ class Utils {
     var values = List<int>.generate(length, (i) => _random.nextInt(256));
 
     return base64Url.encode(values);
+  }
+
+  static Uint8List generateRandomBytes([int length = 32]) {
+    final values = List<int>.generate(length, (i) => _random.nextInt(256));
+    return Uint8List.fromList(values);
   }
 
   static int createRandomSequence({int max = 20536}) {

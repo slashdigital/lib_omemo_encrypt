@@ -43,7 +43,7 @@ void main() {
 
     final validSignature = await encryption.verifySignature(
         Uint8List.fromList((await signedPreKey.extractPublicKey()).bytes),
-        Uint8List.fromList(signature.bytes),
+        signature,
         await identityKeyPair.extractPublicKey());
 
     expect(validSignature, true);

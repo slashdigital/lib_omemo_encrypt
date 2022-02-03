@@ -7,13 +7,14 @@ import 'package:lib_omemo_encrypt/keys/bundle/prekey_bundle.dart';
 import 'package:lib_omemo_encrypt/keys/bundle/prekey_package.dart';
 
 abstract class AxololtInterface {
+  Future<SimpleKeyPair> generateKeyPair();
   Future<SimpleKeyPair> generateIdentityKeyPair();
   String generateRegistrationId();
   Future<List<PreKey>> generatePreKeys(int start, int count);
   Future<PreKey> generateLastResortPreKey();
   Future<SimpleKeyPair> generateSignedPreKey(
       SimpleKeyPair identityKeyPair, int signedPreKeyId);
-  Future<Signature> generateSignature(
+  Future<Uint8List> generateSignature(
       SimpleKeyPair identityKeyPair, SimpleKeyPair signedPreKey);
   Future<bool> verifySignature(
       Uint8List data, Uint8List signature, SimplePublicKey publicKey);

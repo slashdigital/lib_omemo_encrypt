@@ -9,7 +9,7 @@ class PreKeyPackage {
   final List<PreKey> preKeys;
   final int signedPreKeyPairId;
   final SimpleKeyPair signedPreKeyPair;
-  final Signature signature;
+  final Uint8List signature;
 
   const PreKeyPackage(
       {required this.identityKeyPair,

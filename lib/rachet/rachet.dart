@@ -25,7 +25,6 @@ const chainKeyByteCount = 32;
 
 class Rachet extends RachetInterface {
   final algorithm = HKDFv3();
-  final algorithmEd25519 = Ed25519();
   final Axololt axololt = Axololt();
 
   @override

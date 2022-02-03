@@ -116,7 +116,7 @@ void main() {
         signedPreKey: await bobReceivingSignKey.extractPublicKey(),
         preKeyId: bobReceivingPreKeyId,
         signedPreKeyId: bobReceivingSignKeyId,
-        signature: Uint8List.fromList(signature.bytes));
+        signature: signature);
 
     // ### 3.4 ? bob store alice prekey in his local storage
     final bobStore = MemoryStorage(
@@ -201,7 +201,7 @@ void main() {
         signedPreKey: await aliceReceivingSignKey.extractPublicKey(),
         preKeyId: aliceReceivingPreKeyId,
         signedPreKeyId: aliceReceivingSignKeyId,
-        signature: Uint8List.fromList(bobKeyPackage.signature.bytes));
+        signature: bobKeyPackage.signature);
     // ### 7.2 Alice construct the receiving prekey bundle
 
     // ### 8 Alice try to init the first cipher session
@@ -212,30 +212,30 @@ void main() {
         signature: alicekeyPackage.signature));
 
     final aliceSessionFactory = SessionFactory(store: aliceStore);
-    final _aliceSession = Session(); //await aliceSessionFactory
-    // .createSessionFromPreKeyBundle(aliceReceivingBundle);
+    Session _aliceSession = await aliceSessionFactory
+        .createSessionFromPreKeyBundle(aliceReceivingBundle); // Session();
 
-    final aliceSession =
-        await aliceSessionFactory.createSessionFromPreKeyWhisperMessage(
-            _aliceSession, encryptedMessage.body);
+    // final aliceSession =
+    //     await aliceSessionFactory.createSessionFromPreKeyWhisperMessage(
+    //         _aliceSession, encryptedMessage.body);
+    // _aliceSession = aliceSession.session;
     // // ### 9. Alice has the session now try to decrypt message
     final aliceCipherSession = SessionCipher();
-    // final decryptedMessage =
-    //     await aliceCipherSession.decryptPreKeyWhisperMessage(
-    //         aliceSession.session, encryptedMessage.body);
-    // log.d(tag, decryptedMessage);
+    final decryptedMessage = await aliceCipherSession
+        .decryptPreKeyWhisperMessage(_aliceSession, encryptedMessage.body);
+    log.d(tag, decryptedMessage);
 
     // convo
-    final aliceEncMsgA = await aliceCipherSession.encryptMessage(
-        aliceSession.session, Utils.convertStringToBytes('Hello Bob'));
+    // final aliceEncMsgA = await aliceCipherSession.encryptMessage(
+    //     _aliceSession, Utils.convertStringToBytes('Hello Bob'));
 
-    /// Bob decrypt it?
-    ///
-    final plaintext = aliceEncMsgA.isPreKeyWhisperMessage
-        ? await bobCipherSession.decryptPreKeyWhisperMessage(
-            bobSession, aliceEncMsgA.body)
-        : await bobCipherSession.decryptWhisperMessage(
-            bobSession, aliceEncMsgA.body);
+    // /// Bob decrypt it?
+    // ///
+    // final plaintext = aliceEncMsgA.isPreKeyWhisperMessage
+    //     ? await bobCipherSession.decryptPreKeyWhisperMessage(
+    //         bobSession, aliceEncMsgA.body)
+    //     : await bobCipherSession.decryptWhisperMessage(
+    //         bobSession, aliceEncMsgA.body);
     expect(true, true);
   });
 }
