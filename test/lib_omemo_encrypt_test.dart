@@ -31,7 +31,7 @@ void main() {
     final alicekeyPackage =
         await encryption.generatePreKeysPackage(_COUNT_PREKEYS);
     // ### 1. Alice start application and init store and keys
-    final sameKeyIndex = 0;
+    final sameKeyIndex = 1;
 
     final aliceStore = MemoryStorage(
       localRegistrationId: alicekeyPackage.registrationId,
@@ -133,7 +133,7 @@ void main() {
     final bobSession = await bobSessionFactory
         .createSessionFromPreKeyBundle(bobReceivingBundle);
     // ### 5. bob try to encrypt and the first whisper key
-    const bobMessageToAlice = 'I want to chat';
+    const bobMessageToAlice = 'I want to chat hello';
     final bobCipherSession = SessionCipher();
     final encryptedMessage = await bobCipherSession.encryptMessage(
         bobSession, Utils.convertStringToBytes(bobMessageToAlice));
@@ -240,6 +240,7 @@ void main() {
     final aliceCipherSession = SessionCipher();
     final decryptedMessage = await aliceCipherSession
         .decryptPreKeyWhisperMessage(_aliceSession, encryptedMessage.body);
+    print(decryptedMessage);
     log.d(tag, decryptedMessage);
 
     // convo

@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:lib_omemo_encrypt/encryptions/axolotl/axolotl.dart';
-import 'package:lib_omemo_encrypt/encryptions/axolotl/cbc.dart';
 import 'package:lib_omemo_encrypt/encryptions/cbc/cbc.dart';
 import 'package:lib_omemo_encrypt/encryptions/cipher_session/session_cipher_interface.dart';
 import 'package:lib_omemo_encrypt/messages/message.dart';
@@ -15,7 +14,6 @@ import 'package:lib_omemo_encrypt/rachet/rachet.dart';
 import 'package:lib_omemo_encrypt/sessions/session.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:lib_omemo_encrypt/sessions/session_state.dart';
-import 'package:lib_omemo_encrypt/utils/array_buffer_utils.dart';
 import 'package:lib_omemo_encrypt/utils/log.dart';
 import 'package:tuple/tuple.dart';
 
@@ -50,23 +48,6 @@ class SessionCipher extends SessionCipherInterface {
     );
     newState.addReceivingChain(theirEphemeralPublicKey, receiverChain.chain);
     return Tuple2<SessionState, Chain>(newState, receiverChain.chain);
-    // var {
-    //       rootKey: theirRootKey,
-    //       chain: nextReceivingChain
-    //   } = yield ratchet.deriveNextRootKeyAndChain(sessionState.rootKey, theirEphemeralPublicKey,
-    //           sessionState.senderRatchetKeyPair.private);
-    //   var ourNewEphemeralKeyPair = yield crypto.generateKeyPair();
-    //   var {
-    //       rootKey,
-    //       chain: nextSendingChain
-    //   } = yield ratchet.deriveNextRootKeyAndChain(theirRootKey,
-    //           theirEphemeralPublicKey, ourNewEphemeralKeyPair.private);
-    //   sessionState.rootKey = rootKey;
-    //   sessionState.addReceivingChain(theirEphemeralPublicKey, nextReceivingChain);
-    //   sessionState.previousCounter = Math.max(sessionState.sendingChain.index - 1, 0);
-    //   sessionState.sendingChain = nextSendingChain;
-    //   sessionState.senderRatchetKeyPair = ourNewEphemeralKeyPair;
-    //   return nextReceivingChain;
   }
 
   @override
@@ -95,10 +76,10 @@ class SessionCipher extends SessionCipherInterface {
     final algorithm = AesCbc.with256bits(
       macAlgorithm: Hmac.sha256(),
     );
-    // final ciphertext =  await algorithm.encrypt(_paddedMessage,
-    //     secretKey: SecretKey(messageKeys.cipherKey), nonce: messageKeys.iv);
-    final cipertext =
-        getCiphertext(messageKeys, Uint8List.fromList(paddedMessage));
+    List<int> _paddedMessage = pad(Uint8List.fromList(paddedMessage), 16);
+    final _ciphertext = await algorithm.encrypt(_paddedMessage,
+        secretKey: SecretKey(messageKeys.cipherKey), nonce: messageKeys.iv);
+    final cipertext = _ciphertext.concatenation(nonce: true, mac: true);
 
     Log.instance.d(
         tag, 'ciphertext - mac (secret box): ${cipertext.length} :  cipertext');
@@ -216,17 +197,23 @@ class SessionCipher extends SessionCipherInterface {
         newSessionState.remoteIdentityKey,
         newSessionState.localIdentityKey,
         omemoMessage.mac);
-    // if (!isValid) {
-    //   throw Exception('Bad Mac');
-    // }
+    if (!isValid) {
+      throw Exception('Bad Mac');
+    }
 
     // AES-CBC with 128 bit keys and HMAC-SHA256 authentication.
-    final _plainText =
-        _getPlaintext(messageKeys, Uint8List.fromList(message.ciphertext));
+    final algorithm = AesCbc.with256bits(
+      macAlgorithm: Hmac.sha256(),
+    );
+    final plainText = await algorithm.decrypt(
+        SecretBox.fromConcatenation(message.ciphertext,
+            nonceLength: 16, macLength: 32),
+        secretKey: SecretKey(messageKeys.cipherKey));
+    final _plainText = unpad(Uint8List.fromList(plainText));
     newSessionState.pending = null;
-    final abc = utf8.decode(_plainText);
+    Log.instance.d(tag, 'Plain text: ${utf8.decode(_plainText)}');
+    print('Plain text: ${utf8.decode(_plainText)}');
     return Tuple2<SessionState, Uint8List>(newSessionState, _plainText);
-    // } catch (e) {
   }
 
   @override
@@ -357,10 +344,4 @@ class SessionCipher extends SessionCipherInterface {
     Log.instance.d(tag, 'theirMac: $theirMac');
     return crypto.Digest(ourMac) == crypto.Digest(theirMac);
   }
-
-  Uint8List getCiphertext(MessageKey messageKeys, Uint8List plaintext) =>
-      aesCbcEncrypt(messageKeys.cipherKey, messageKeys.iv, plaintext);
-
-  Uint8List _getPlaintext(MessageKey messageKeys, Uint8List cipherText) =>
-      aesCbcDecrypt(messageKeys.cipherKey, messageKeys.iv, cipherText);
 }
