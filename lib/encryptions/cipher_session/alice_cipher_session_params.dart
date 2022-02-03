@@ -8,7 +8,7 @@ class AliceCipherSessionParams {
   final LibOMEMOKey? ourSignedPreKeyPair;
   final SimplePublicKey theirIdentityKey;
   final PublicKey theirSignedPreKey;
-  final PublicKey theirRatchetKey;
+  final SimplePublicKey theirRatchetKey;
   final SimplePublicKey? theirOneTimePreKey;
 
   const AliceCipherSessionParams(

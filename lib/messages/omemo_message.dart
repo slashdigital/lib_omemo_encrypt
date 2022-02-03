@@ -7,7 +7,7 @@ class OmemoMessage {
   final SimplePublicKey ratchetKey;
   final int counter;
   final int previousCounter;
-  final SecretBox ciphertext;
+  final Uint8List ciphertext;
 
   const OmemoMessage(
       {required this.ratchetKey,

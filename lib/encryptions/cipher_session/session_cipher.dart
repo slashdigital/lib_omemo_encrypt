@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:lib_omemo_encrypt/encryptions/axolotl/axolotl.dart';
+import 'package:lib_omemo_encrypt/encryptions/axolotl/cbc.dart';
 import 'package:lib_omemo_encrypt/encryptions/cbc/cbc.dart';
 import 'package:lib_omemo_encrypt/encryptions/cipher_session/session_cipher_interface.dart';
 import 'package:lib_omemo_encrypt/messages/message.dart';
@@ -93,15 +95,14 @@ class SessionCipher extends SessionCipherInterface {
     final algorithm = AesCbc.with256bits(
       macAlgorithm: Hmac.sha256(),
     );
-    List<int> _paddedMessage = pad(Uint8List.fromList(paddedMessage), 16);
-    final ciphertext = await algorithm.encrypt(_paddedMessage,
-        secretKey: SecretKey(messageKeys.cipherKey), nonce: messageKeys.iv);
+    // final ciphertext =  await algorithm.encrypt(_paddedMessage,
+    //     secretKey: SecretKey(messageKeys.cipherKey), nonce: messageKeys.iv);
+    final cipertext =
+        getCiphertext(messageKeys, Uint8List.fromList(paddedMessage));
 
-    Log.instance.d(tag,
-        'ciphertext - mac (secret box): ${ciphertext.mac.bytes.length} : ${ciphertext.mac.bytes}');
+    Log.instance.d(
+        tag, 'ciphertext - mac (secret box): ${cipertext.length} :  cipertext');
 
-    Log.instance.d(tag,
-        'ciphertext - iv (secret box): ${ciphertext.nonce.length} : ${ciphertext.nonce}');
     final MessageVersion version = MessageVersion(
         session.mostRecentState().sessionVersion, currentVersion);
     final message = OmemoMessage(
@@ -111,7 +112,7 @@ class SessionCipher extends SessionCipherInterface {
           .extractPublicKey(),
       counter: session.mostRecentState().sendingChain.index,
       previousCounter: session.mostRecentState().previousCounter,
-      ciphertext: ciphertext,
+      ciphertext: cipertext,
     );
 
     Log.instance.d(tag, 'Rachet key: ${message.ratchetKey.bytes}');
@@ -220,17 +221,11 @@ class SessionCipher extends SessionCipherInterface {
     // }
 
     // AES-CBC with 128 bit keys and HMAC-SHA256 authentication.
-    final algorithm = AesCbc.with256bits(
-      macAlgorithm: Hmac.sha256(),
-    );
-    final _plainText = await algorithm.decrypt(
-        SecretBox.fromConcatenation(message.ciphertext,
-            nonceLength: 16, macLength: 32),
-        secretKey: SecretKey(messageKeys.cipherKey));
-    final plainText = unpad(Uint8List.fromList(_plainText));
+    final _plainText =
+        _getPlaintext(messageKeys, Uint8List.fromList(message.ciphertext));
     newSessionState.pending = null;
-    return Tuple2<SessionState, Uint8List>(
-        newSessionState, Uint8List.fromList(plainText));
+    final abc = utf8.decode(_plainText);
+    return Tuple2<SessionState, Uint8List>(newSessionState, _plainText);
     // } catch (e) {
   }
 
@@ -326,6 +321,7 @@ class SessionCipher extends SessionCipherInterface {
       Log.instance.d(tag, 'Before - _chain index: ${chain.index}');
       Log.instance.d(tag, 'Before - _chain key: ${chain.key}');
       var messageKeys = await rachet.deriveMessageKeys(chain.key);
+      print(messageKeys);
       await rachet.clickSubRachet(chain);
       // Set next chain
       sessionState.setReceivingChain(theirEphemeralPublicKey, chain);
@@ -361,4 +357,10 @@ class SessionCipher extends SessionCipherInterface {
     Log.instance.d(tag, 'theirMac: $theirMac');
     return crypto.Digest(ourMac) == crypto.Digest(theirMac);
   }
+
+  Uint8List getCiphertext(MessageKey messageKeys, Uint8List plaintext) =>
+      aesCbcEncrypt(messageKeys.cipherKey, messageKeys.iv, plaintext);
+
+  Uint8List _getPlaintext(MessageKey messageKeys, Uint8List cipherText) =>
+      aesCbcDecrypt(messageKeys.cipherKey, messageKeys.iv, cipherText);
 }

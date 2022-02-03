@@ -22,18 +22,12 @@ class Log {
 
   void d(String tag, dynamic message) {
     if (logLevel.index <= LogLevel.DEBUG.index) {
-      if (kDebugMode) {
-        print('D/[$tag]: $message');
-      }
       log('D/[$tag]: $message');
     }
   }
 
   void i(String tag, dynamic message) {
     if (logLevel.index <= LogLevel.INFO.index) {
-      if (kDebugMode) {
-        print('I/[$tag]: $message');
-      }
       log('I/[$tag]: $message');
     }
   }
@@ -49,9 +43,6 @@ class Log {
 
   void e(String tag, dynamic message) {
     if (logLevel.index <= LogLevel.ERROR.index) {
-      if (kDebugMode) {
-        print('E/[$tag]: $message');
-      }
       log('E/[$tag]: $message');
     }
   }

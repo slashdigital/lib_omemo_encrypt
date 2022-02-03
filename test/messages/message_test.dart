@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:lib_omemo_encrypt/messages/message.dart';
@@ -15,8 +17,8 @@ void main() {
               ratchetKey: await keyPair.extractPublicKey(),
               counter: 0,
               previousCounter: 0,
-              ciphertext: SecretBox(Utils.convertStringToBytes('test'),
-                  nonce: [], mac: Mac.empty)));
+              ciphertext:
+                  Uint8List.fromList(Utils.convertStringToBytes('test'))));
       final decoded = Message.message.decodePreKeyWhisperMessage(result);
     });
   });

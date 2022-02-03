@@ -31,6 +31,7 @@ void main() {
     final alicekeyPackage =
         await encryption.generatePreKeysPackage(_COUNT_PREKEYS);
     // ### 1. Alice start application and init store and keys
+    final sameKeyIndex = 0;
 
     final aliceStore = MemoryStorage(
       localRegistrationId: alicekeyPackage.registrationId,
@@ -97,9 +98,11 @@ void main() {
         </pubsub>
       </iq>
     */
-    final bobReceivingPreKeyId = alicekeyPackage.preKeys[0].id;
+    Log.instance.d(tag,
+        '============================= BOB start request for alice key and try to chat');
+    final bobReceivingPreKeyId = alicekeyPackage.preKeys[sameKeyIndex].id;
     final bobReceivingPreKeyPublic =
-        await alicekeyPackage.preKeys[0].keyPair!.extractPublicKey();
+        await alicekeyPackage.preKeys[sameKeyIndex].keyPair!.extractPublicKey();
     final bobReceivingSignKey = alicekeyPackage.signedPreKeyPair;
     final bobReceivingIdentityKey = alicekeyPackage.identityKeyPair;
     final bobReceivingSignKeyId = alicekeyPackage.signedPreKeyPairId;
@@ -181,44 +184,58 @@ void main() {
     // } else {
     //   // Decrypt text
     // }
-    // 7.1 Alice try to get pre key with bob
-    final aliceReceivingPreKeyId = bobKeyPackage.preKeys[0].id;
-    final aliceReceivingPreKeyPublic =
-        await bobKeyPackage.preKeys[0].keyPair!.extractPublicKey();
-    final aliceReceivingSignKey = bobKeyPackage.signedPreKeyPair;
-    final aliceReceivingIdentityKey = bobKeyPackage.identityKeyPair;
-    final aliceReceivingSignKeyId = bobKeyPackage.signedPreKeyPairId;
+    // 7.1 Alice try to get pre key with bob that send to pop
+    // final aliceReceivingPreKeyId = bobKeyPackage.preKeys[0].id;
+    // final aliceReceivingPreKeyPublic =
+    //     await bobKeyPackage.preKeys[0].keyPair!.extractPublicKey();
+    // final aliceReceivingSignKey = bobKeyPackage.signedPreKeyPair;
+    // final aliceReceivingIdentityKey = bobKeyPackage.identityKeyPair;
+    // final aliceReceivingSignKeyId = bobKeyPackage.signedPreKeyPairId;
 
+    // final aliceReceivingPreKeyId = alicekeyPackage.preKeys[sameKeyIndex].id;
+    // final aliceReceivingPreKeyPublic =
+    //     await alicekeyPackage.preKeys[sameKeyIndex].keyPair!.extractPublicKey();
+    // final aliceReceivingSignKey = alicekeyPackage.signedPreKeyPair;
+    // final aliceReceivingIdentityPublicKey =
+    //     await bobKeyPackage.identityKeyPair.extractPublicKey();
+    // final aliceReceivingSignKeyId = alicekeyPackage.signedPreKeyPairId;
+    // final aliceReceivingRegId = bobKeyPackage.registrationId;
+    // final aliceReceivingSignature = bobKeyPackage.signature;
+
+    // final sign = await encryption.generateSignature(aliceReceivingIdentityKey, aliceReceivingSignKey);
     // ### 7.2 Alice construct the receiving prekey bundle
 
     // Alice set key for Bob # use key 0
-    const aliceBobUserId = 'bob@example.co';
-    final aliceReceivingBundle = ReceivingPreKeyBundle(
-        userId: aliceBobUserId,
-        identityKey: await aliceReceivingIdentityKey.extractPublicKey(),
-        registrationId: bobKeyPackage.registrationId,
-        preKey: aliceReceivingPreKeyPublic,
-        signedPreKey: await aliceReceivingSignKey.extractPublicKey(),
-        preKeyId: aliceReceivingPreKeyId,
-        signedPreKeyId: aliceReceivingSignKeyId,
-        signature: bobKeyPackage.signature);
+    // const aliceBobUserId = 'bob@example.co';
+    // final aliceReceivingBundle = ReceivingPreKeyBundle(
+    //     userId: aliceBobUserId,
+    //     identityKey: aliceReceivingIdentityPublicKey,
+    //     registrationId: aliceReceivingRegId,
+    //     preKey: aliceReceivingPreKeyPublic,
+    //     signedPreKey: await aliceReceivingSignKey.extractPublicKey(),
+    //     preKeyId: aliceReceivingPreKeyId,
+    //     signedPreKeyId: aliceReceivingSignKeyId,
+    //     signature: aliceReceivingSignature);
     // ### 7.2 Alice construct the receiving prekey bundle
 
     // ### 8 Alice try to init the first cipher session
-
+    Log.instance.d(tag,
+        '============================= ALICE start getting the prekey thru whisper message');
     aliceStore.addLocalSignedPreKeyPair(SignedPreKey(
         id: alicekeyPackage.signedPreKeyPairId,
         keyPair: alicekeyPackage.signedPreKeyPair,
         signature: alicekeyPackage.signature));
 
     final aliceSessionFactory = SessionFactory(store: aliceStore);
-    Session _aliceSession = await aliceSessionFactory
-        .createSessionFromPreKeyBundle(aliceReceivingBundle); // Session();
+    Session
+        _aliceSession = /*await aliceSessionFactory
+        .createSessionFromPreKeyBundle(aliceReceivingBundle); / */
+        Session();
 
-    // final aliceSession =
-    //     await aliceSessionFactory.createSessionFromPreKeyWhisperMessage(
-    //         _aliceSession, encryptedMessage.body);
-    // _aliceSession = aliceSession.session;
+    final aliceSession =
+        await aliceSessionFactory.createSessionFromPreKeyWhisperMessage(
+            _aliceSession, encryptedMessage.body);
+    _aliceSession = aliceSession.session;
     // // ### 9. Alice has the session now try to decrypt message
     final aliceCipherSession = SessionCipher();
     final decryptedMessage = await aliceCipherSession

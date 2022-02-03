@@ -106,8 +106,7 @@ class Message extends MessageInterface {
             n: message.counter,
             pn: message.previousCounter,
             dhPub: message.ratchetKey.bytes,
-            ciphertext:
-                message.ciphertext.concatenation(nonce: true, mac: true))
+            ciphertext: message.ciphertext)
         .writeToBuffer()
         .buffer;
     return ArrayBufferUtils.concat([versionByte, messageBytes]);

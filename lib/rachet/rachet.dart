@@ -84,10 +84,12 @@ class Rachet extends RachetInterface {
       SimpleKeyPair ourEphemeralPrivateKey) async {
     final sharedSecret = await axololt.calculateAgreement(
         ourEphemeralPrivateKey, theirEphemeralPublicKey);
+
+    final bytes = Uint8List.fromList(utf8.encode('WhisperRatchet'));
     var derivedSecretBytes = algorithm.deriveSecrets4(
         sharedSecret.asUint8List(),
         rootKey,
-        whisperRatchet.asUint8List(),
+        bytes,
         rootKeyByteCount + chainKeyByteCount);
 
     return KeyAndChain(

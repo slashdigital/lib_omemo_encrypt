@@ -23,6 +23,9 @@ import 'package:lib_omemo_encrypt/sessions/session.dart';
 import 'package:lib_omemo_encrypt/sessions/session_state.dart';
 import 'package:lib_omemo_encrypt/storage/storage_interface.dart';
 import 'package:lib_omemo_encrypt/utils/array_buffer_utils.dart';
+import 'package:lib_omemo_encrypt/utils/log.dart';
+
+const sessionFactoryTag = 'sessionFactory';
 
 class SessionCipherState {
   final Session session;
@@ -63,9 +66,22 @@ class SessionFactory extends SessionFactoryInterface {
     }
     final supportsV3 = receivingPreKeyBundle.signedPreKey != null;
     final ourBaseKeyPair = await algorithmx25519.newKeyPair();
-    final PublicKey theirSignedPreKey = supportsV3
+    final SimplePublicKey theirSignedPreKey = supportsV3
         ? receivingPreKeyBundle.signedPreKey!
         : receivingPreKeyBundle.preKey;
+
+    Log.instance.d(sessionFactoryTag, 'Session Version : 3');
+    Log.instance.d(sessionFactoryTag,
+        'ourBaseKeyPair : ${await ourBaseKeyPair.extractPublicKey()}');
+    Log.instance.d(sessionFactoryTag,
+        'ourIdentityKeyPair : ${await store.getLocalIdentityKeyPair().extractPublicKey()}');
+    Log.instance.d(sessionFactoryTag, 'ourSignedPreKeyPair : null');
+    Log.instance.d(sessionFactoryTag,
+        'receivingPreKeyBundle.identityKey : ${receivingPreKeyBundle.identityKey}');
+    Log.instance.d(sessionFactoryTag, 'theirSignedPreKey : $theirSignedPreKey');
+    Log.instance.d(sessionFactoryTag, 'theirRatchetKey : $theirSignedPreKey');
+    Log.instance.d(sessionFactoryTag,
+        'theirOneTimePreKey : ${supportsV3 ? receivingPreKeyBundle.preKey : null}');
 
     final aliceParameters = AliceCipherSessionParams(
         sessionVersion: supportsV3 ? 3 : 2,
@@ -108,20 +124,22 @@ class SessionFactory extends SessionFactoryInterface {
           parameters.ourBaseKeyPair, parameters.theirOneTimePreKey!);
       agreements.add(agreement4);
     }
-    final KeyAndChain initialRootKeyChain = rachet.deriveInitialRootKeyAndChain(
+    final KeyAndChain derivedRootKeyChain = rachet.deriveInitialRootKeyAndChain(
         parameters.sessionVersion, agreements);
-    final KeyAndChain nextRootKeyChain = rachet.deriveInitialRootKeyAndChain(
-        parameters.sessionVersion, agreements);
+    final KeyAndChain sendingKeyChain = await rachet.deriveNextRootKeyAndChain(
+        derivedRootKeyChain.rootKey,
+        parameters.theirRatchetKey,
+        sendingRatchetKeyPair);
     final SessionState sessionState = SessionState(
       sessionVersion: parameters.sessionVersion,
       remoteIdentityKey: parameters.theirIdentityKey,
       localIdentityKey: await parameters.ourIdentityKeyPair.extractPublicKey(),
-      rootKey: nextRootKeyChain.rootKey,
-      sendingChain: nextRootKeyChain.chain,
+      rootKey: sendingKeyChain.rootKey,
+      sendingChain: sendingKeyChain.chain,
       senderRatchetKeyPair: sendingRatchetKeyPair,
     );
     sessionState.addReceivingChain(
-        parameters.theirRatchetKey, initialRootKeyChain.chain);
+        parameters.theirRatchetKey, derivedRootKeyChain.chain);
     return sessionState;
   }
 
@@ -173,43 +191,35 @@ class SessionFactory extends SessionFactoryInterface {
     //     preKeyPair = yield store.getLocalPreKeyPair(message.preKeyId);
     // }
 
+    Log.instance.d(sessionFactoryTag,
+        'sessionVersion: ${preKeyWhisperMessage.version.current}');
+    Log.instance.d(sessionFactoryTag, 'theirBaseKey/prekey: ${message.ek}');
+    Log.instance.d(sessionFactoryTag, 'theirIdentityKey: ${message.ik}');
+    Log.instance.d(sessionFactoryTag,
+        'ourIdentityKeyPair: ${await store.getLocalIdentityKeyPair().extractPublicKey()}');
+    Log.instance
+        .d(sessionFactoryTag, 'ourSignedPreKeyPair: $ourSignedPreKeyPair');
+    Log.instance
+        .d(sessionFactoryTag, 'ourRatchetKeyPair: $ourSignedPreKeyPair');
+    Log.instance.d(sessionFactoryTag, 'ourOneTimePreKeyPair: $preKeyPair');
+
     final bobParameters = BobCipherSessionParams(
         sessionVersion: preKeyWhisperMessage.version.current,
-        theirBaseKey: SimplePublicKey(message.ek, type: KeyPairType.ed25519),
-        theirIdentityKey:
-            SimplePublicKey(message.ik, type: KeyPairType.ed25519),
+        theirBaseKey: SimplePublicKey(message.ek, type: KeyPairType.x25519),
+        theirIdentityKey: SimplePublicKey(message.ik, type: KeyPairType.x25519),
         ourIdentityKeyPair: store.getLocalIdentityKeyPair(),
         ourSignedPreKeyPair: ourSignedPreKeyPair,
         ourRatchetKeyPair: ourSignedPreKeyPair,
         ourOneTimePreKeyPair: preKeyPair);
 
-    // var bobParameters = {
-    //     sessionVersion: preKeyWhisperMessage.version.current,
-    //     theirBaseKey: message.baseKey,
-    //     theirIdentityKey: message.identityKey,
-    //     ourIdentityKeyPair: yield store.getLocalIdentityKeyPair(),
-    //     ourSignedPreKeyPair: ourSignedPreKeyPair,
-    //     ourRatchetKeyPair: ourSignedPreKeyPair,
-    //     ourOneTimePreKeyPair: preKeyPair
-    // };
     final sessionState = await initializeBobSession(bobParameters);
     sessionState.theirBaseKey =
-        SimplePublicKey(message.ek, type: KeyPairType.ed25519);
+        SimplePublicKey(message.ek, type: KeyPairType.x25519);
     final clonedSession = Session();
     clonedSession.clone(session.states);
     clonedSession.addState(sessionState);
     return SessionCipherState(
         clonedSession, message.ik, message.registrationId);
-
-    // var sessionState = yield initializeBobSession(bobParameters);
-    // sessionState.theirBaseKey = message.baseKey;
-    // var clonedSession = new Session(session);
-    // clonedSession.addState(sessionState);
-    // return {
-    //     session: clonedSession,
-    //     identityKey: message.identityKey,
-    //     registrationId: message.registrationId
-    // };
   }
 
   @override
@@ -223,11 +233,6 @@ class SessionFactory extends SessionFactoryInterface {
         parameters.ourSignedPreKeyPair.keyPair!, parameters.theirBaseKey);
 
     final agreements = [agreement1, agreement2, agreement3];
-    //  var agreements = [
-    //         crypto.calculateAgreement(parameters.theirIdentityKey, parameters.ourSignedPreKeyPair.private),
-    //         crypto.calculateAgreement(parameters.theirBaseKey, parameters.ourIdentityKeyPair.private),
-    //         crypto.calculateAgreement(parameters.theirBaseKey, parameters.ourSignedPreKeyPair.private)
-    //     ];
     if (parameters.sessionVersion >= 3 &&
         parameters.ourOneTimePreKeyPair != null) {
       final agreement4 = await axololt.calculateAgreement(
@@ -235,15 +240,6 @@ class SessionFactory extends SessionFactoryInterface {
       agreements.add(agreement4);
     }
 
-    //     if (parameters.sessionVersion >= 3 && parameters.ourOneTimePreKeyPair) {
-    //         agreements.push(crypto.calculateAgreement(parameters.theirBaseKey,
-    //             parameters.ourOneTimePreKeyPair.private));
-    //     }
-
-    //     var {
-    //         rootKey,
-    //         chain: sendingChain
-    //     } = yield ratchet.deriveInitialRootKeyAndChain(parameters.sessionVersion, yield agreements);
     final KeyAndChain initialRootKeyChain = rachet.deriveInitialRootKeyAndChain(
         parameters.sessionVersion, agreements);
     //     return new SessionState({
