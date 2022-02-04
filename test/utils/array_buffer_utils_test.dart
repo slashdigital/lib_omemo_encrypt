@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:collection/collection.dart';
+import 'package:cryptography/cryptography.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lib_omemo_encrypt/utils/array_buffer_utils.dart';
 import 'package:lib_omemo_encrypt/utils/utils.dart';
 
+Function eq = const ListEquality().equals;
 void main() {
   const message1 = "I love secure";
 
@@ -29,10 +32,16 @@ void main() {
       expect(generatedValue.asUint8List(), generated1);
     });
     test('Should be able to get byte list from secret', () async {
-      throw UnimplementedError();
+      final secretData = SecretKeyData.random(length: 32).bytes;
+      SecretKey key = SecretKey(secretData);
+      final bytes = await ArrayBufferUtils.getBytesList(key);
+      expect(eq(bytes, secretData), true);
     });
     test('Should be able to get byte buffer from secret', () async {
-      throw UnimplementedError();
+      final secretData = SecretKeyData.random(length: 32).bytes;
+      SecretKey key = SecretKey(secretData);
+      final byteBuffer = await ArrayBufferUtils.getBytesBuffer(key);
+      expect(byteBuffer.lengthInBytes, secretData.length);
     });
   });
 }

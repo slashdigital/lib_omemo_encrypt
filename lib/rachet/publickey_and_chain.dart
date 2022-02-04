@@ -1,4 +1,3 @@
-import 'package:cryptography/cryptography.dart';
 import 'package:lib_omemo_encrypt/keys/ecc/publickey.dart';
 import 'package:lib_omemo_encrypt/rachet/chain.dart';
 
