@@ -7,7 +7,6 @@ import 'package:lib_omemo_encrypt/keys/whisper/signed_prekey.dart';
 class ReceivingPreKeyBundle {
   final String userId;
   final IdentityKey identityKey;
-  final String registrationId;
   final PreKey preKey;
   final SignedPreKey? signedPreKey;
   final Uint8List signature;
@@ -18,7 +17,6 @@ class ReceivingPreKeyBundle {
   const ReceivingPreKeyBundle(
       {required this.userId,
       required this.identityKey,
-      required this.registrationId,
       required this.preKey,
       required this.signedPreKey,
       required this.signature});

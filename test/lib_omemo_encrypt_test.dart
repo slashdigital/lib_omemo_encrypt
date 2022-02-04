@@ -121,7 +121,6 @@ void main() {
     final bobReceivingBundle = ReceivingPreKeyBundle(
         userId: bobAliceUserId,
         identityKey: await bobReceivingIdentityKey.identityKey,
-        registrationId: bobKeyPackage.registrationId,
         preKey: bobReceivingPreKeyPublic,
         signedPreKey: await bobReceivingSignKey.signedPreKey,
         signature: signature);
