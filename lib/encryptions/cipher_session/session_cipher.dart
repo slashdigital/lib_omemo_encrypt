@@ -45,6 +45,7 @@ class SessionCipher extends SessionCipherInterface {
       rootKey: senderChain.rootKey,
       senderRatchetKeyPair: ourNewEphemeralKeyPair,
       sendingChain: senderChain.chain,
+      receivingChains: [],
     );
     newState.addReceivingChain(theirEphemeralPublicKey, receiverChain.chain);
     return Tuple2<SessionState, Chain>(newState, receiverChain.chain);
@@ -134,18 +135,13 @@ class SessionCipher extends SessionCipherInterface {
       Session session, Uint8List omemoExchangeMessageBytes) async {
     final newSession = Session();
     newSession.clone(session.states);
-    for (var element in newSession.states) {
-      final clonedSessionState = SessionState(
-          sessionVersion: element.sessionVersion,
-          remoteIdentityKey: element.remoteIdentityKey,
-          localIdentityKey: element.localIdentityKey,
-          rootKey: element.rootKey,
-          sendingChain: element.sendingChain,
-          senderRatchetKeyPair: element.senderRatchetKeyPair);
+    for (var sessionState in newSession.states) {
+      final clonedSessionState = sessionState.clone();
+
       final result = await decryptWhisperMessageWithSessionState(
           clonedSessionState, omemoExchangeMessageBytes);
       if (result != null) {
-        newSession.removeState(element);
+        newSession.removeState(sessionState);
         newSession.addState(result.item1);
         return DecryptedMessage(session: newSession, plainText: result.item2);
       }
@@ -157,19 +153,12 @@ class SessionCipher extends SessionCipherInterface {
   Future<Tuple2<SessionState, Uint8List>?>
       decryptWhisperMessageWithSessionState(SessionState sessionState,
           Uint8List omemoExchangeMessageBytes) async {
-    // try {
-    // var whisperMessage = Messages.decodeWhisperMessage(whisperMessageBytes);
     final omemoMessage =
         Message.message.decodeWhisperMessage(omemoExchangeMessageBytes);
     final macInputTypes =
         Message.message.decodeWhisperMessageMacInput(omemoExchangeMessageBytes);
 
     Log.instance.d(tag, 'Decrypting - macInputTypes: $macInputTypes');
-    //     var macInputTypes = Messages.decodeWhisperMessageMacInput(whisperMessageBytes);
-
-    //     if (whisperMessage.version.current !== sessionState.sessionVersion) {
-    //         throw new InvalidMessageException("Message version doesn't match session version");
-    //     }
     if (omemoMessage.version.current != sessionState.sessionVersion) {
       throw Exception("Message version doesn't match session version");
     }
@@ -293,8 +282,8 @@ class SessionCipher extends SessionCipherInterface {
       while (chain.index < counter) {
         // Some messages have not yet been delivered ("skipped") and so we need to catch the sub ratchet up
         // while keeping the message keys for when the messages are eventually delivered.
-        chain.messageKeys[chain.index] =
-            await rachet.deriveMessageKeys(chain.key);
+        chain.messageKeys
+            .insert(chain.index, await rachet.deriveMessageKeys(chain.key));
         await rachet.clickSubRachet(chain);
       }
       // As we have received the message, we should click the sub ratchet forwards so we can't decrypt it again
@@ -315,7 +304,7 @@ class SessionCipher extends SessionCipherInterface {
   @override
   Future<Tuple2<SessionState, Chain>> getOrCreateReceivingChain(
       SessionState sessionState, ECDHPublicKey theirEphemeralPublicKey) async {
-    var chain = sessionState.findReceivingChain(theirEphemeralPublicKey);
+    var chain = await sessionState.findReceivingChain(theirEphemeralPublicKey);
     if (chain != null) {
       return Tuple2<SessionState, Chain>(sessionState, chain);
     }

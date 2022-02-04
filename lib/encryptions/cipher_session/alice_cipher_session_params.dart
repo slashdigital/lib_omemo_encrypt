@@ -1,6 +1,4 @@
-import 'package:cryptography/cryptography.dart';
 import 'package:lib_omemo_encrypt/keys/ecc/keypair.dart';
-import 'package:lib_omemo_encrypt/keys/key.dart';
 import 'package:lib_omemo_encrypt/keys/whisper/identity_key.dart';
 import 'package:lib_omemo_encrypt/keys/whisper/identity_keypair.dart';
 import 'package:lib_omemo_encrypt/keys/whisper/prekey.dart';

@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:collection/collection.dart';
 
 import 'package:lib_omemo_encrypt/keys/ecc/keypair.dart';
 import 'package:lib_omemo_encrypt/keys/ecc/publickey.dart';
@@ -9,21 +10,25 @@ import 'package:lib_omemo_encrypt/rachet/chain.dart';
 import 'package:lib_omemo_encrypt/rachet/publickey_and_chain.dart';
 
 const maximumRetainedReceivedChainKeys = 20;
+Function eq = const ListEquality().equals;
 
 class SessionState {
   final int sessionVersion;
-  final IdentityKey remoteIdentityKey; // their
+  final IdentityKey remoteIdentityKey;
   final IdentityKey localIdentityKey;
   late final String localRegistrationId;
-  PreKey? theirBaseKey;
   // Ratchet parameters
   final Uint8List rootKey;
   final Chain sendingChain;
   final ECDHKeyPair senderRatchetKeyPair;
-  final List<PublicKeyAndChain> receivingChains =
-      []; // Keep a small list of chain keys to allow for out of order message delivery.
-  final int previousCounter = 0;
+  // Keep a small list of chain keys to allow for out of order message delivery.
+  final List<PublicKeyAndChain> receivingChains;
+  // In clone
+  // TODO: define when this is in used?
+  int previousCounter = 0;
   PendingPreKey? pending;
+  // Not in clone
+  PreKey? theirBaseKey;
 
   SessionState({
     required this.sessionVersion,
@@ -32,13 +37,22 @@ class SessionState {
     required this.rootKey,
     required this.sendingChain,
     required this.senderRatchetKeyPair,
+    required this.receivingChains,
   });
 
-  Chain? findReceivingChain(ECDHPublicKey theirEphemeralPublicKey) {
-    final keyPair = theirEphemeralPublicKey;
+  Future<bool> _compareKey(
+      ECDHPublicKey theirKey, ECDHPublicKey storingKey) async {
+    final theirByte = await theirKey.bytes;
+    final storingByte = await storingKey.bytes;
+    return eq(theirByte, storingByte);
+  }
+
+  Future<Chain?> findReceivingChain(
+      ECDHPublicKey theirEphemeralPublicKey) async {
     for (var i = 0; i < receivingChains.length; i++) {
-      var receivingChain = receivingChains[i];
-      if (keyPair == receivingChain.ephemeralPublicKey) {
+      final receivingChain = receivingChains[i];
+      if (await _compareKey(
+          theirEphemeralPublicKey, receivingChain.ephemeralPublicKey)) {
         return receivingChain.chain;
       }
     }
@@ -55,10 +69,31 @@ class SessionState {
   }
 
   setReceivingChain(ECDHPublicKey theirEphemeralPublicKey, Chain chain) async {
-    final index = receivingChains.indexWhere((receivingChain) =>
-        receivingChain.ephemeralPublicKey == theirEphemeralPublicKey);
+    int index = -1;
+    for (var i = 0; i < receivingChains.length; i++) {
+      final receivingChain = receivingChains[i];
+      if (await _compareKey(
+          theirEphemeralPublicKey, receivingChain.ephemeralPublicKey)) {
+        index = i;
+        break;
+      }
+    }
     if (index != -1) {
       receivingChains[index].chain = chain;
     }
+  }
+
+  SessionState clone() {
+    final clonedSessionState = SessionState(
+        sessionVersion: sessionVersion,
+        remoteIdentityKey: remoteIdentityKey,
+        localIdentityKey: localIdentityKey,
+        rootKey: rootKey,
+        sendingChain: sendingChain,
+        senderRatchetKeyPair: senderRatchetKeyPair,
+        receivingChains: receivingChains);
+    clonedSessionState.previousCounter = previousCounter;
+    clonedSessionState.pending = pending;
+    return clonedSessionState;
   }
 }

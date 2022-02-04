@@ -6,8 +6,6 @@ import 'package:ed25519_edwards/ed25519_edwards.dart';
 // ignore: implementation_imports
 import 'package:ed25519_edwards/src/edwards25519.dart';
 
-// import 'curve.dart';
-
 void arraycopy(List src, int srcPos, List dest, int destPos, int length) {
   dest.setRange(destPos, length + destPos, src, srcPos);
 }

@@ -9,7 +9,7 @@ import 'package:lib_omemo_encrypt/lib_omemo_encrypt.dart';
 import 'package:lib_omemo_encrypt/storage/in-memory/memory_storage.dart';
 import 'package:lib_omemo_encrypt/utils/log.dart';
 
-const _COUNT_PREKEYS = 20;
+const preKeys = 20;
 
 void main() {
   late Log log;
@@ -25,10 +25,9 @@ void main() {
     /// - signedprekey
     /// - signature (sign signedprekey public key) by identity key
     /// - identity key
-    final alicekeyPackage =
-        await encryption.generatePreKeysPackage(_COUNT_PREKEYS);
+    final alicekeyPackage = await encryption.generatePreKeysPackage(preKeys);
     // ### 1. Alice start application and init store and keys
-    final sameKeyIndex = 1;
+    const sameKeyIndex = 1;
 
     final aliceStore = MemoryStorage(
       localRegistrationId: alicekeyPackage.registrationId,
@@ -78,8 +77,7 @@ void main() {
     /// - signedprekey
     /// - signature (sign signedprekey public key) by identity key
     /// - identity key
-    final bobKeyPackage =
-        await encryption.generatePreKeysPackage(_COUNT_PREKEYS);
+    final bobKeyPackage = await encryption.generatePreKeysPackage(preKeys);
     // ### 3.1 Bob request to server for alice Key
     // ### 3.2 bob get pre key, indexed 0 from her list
     /// Normally this is done with XMPP OMEMO
@@ -124,13 +122,15 @@ void main() {
     // ### 4 Bob try to init the first cipher session
 
     final bobSessionFactory = SessionFactory(store: bobStore);
-    final bobSession = await bobSessionFactory
+    var bobSession = await bobSessionFactory
         .createSessionFromPreKeyBundle(bobReceivingBundle);
     // ### 5. bob try to encrypt and the first whisper key
     const bobMessageToAlice = 'I want to chat hello';
     final bobCipherSession = SessionCipher();
     final encryptedMessage = await bobCipherSession.encryptMessage(
         bobSession, Utils.convertStringToBytes(bobMessageToAlice));
+
+    bobSession = encryptedMessage.session;
 
     // 6. Bob send message to alice using xmpp and wrapped in the message enc
     /** message envelope - 5.5.1 SCE Profile
@@ -173,81 +173,46 @@ void main() {
 
     // 7. Alice receive the key and message thru server xmpp?
     // Is it key exchange?
-    // if (encryptedMessage.isPreKeyWhisperMessage) {
-    //   // Decrypt key exchange and
-    // } else {
-    //   // Decrypt text
-    // }
-    // 7.1 Alice try to get pre key with bob that send to pop
-    // final aliceReceivingPreKeyId = bobKeyPackage.preKeys[0].id;
-    // final aliceReceivingPreKeyPublic =
-    //     await bobKeyPackage.preKeys[0].keyPair!.extractPublicKey();
-    // final aliceReceivingSignKey = bobKeyPackage.signedPreKeyPair;
-    // final aliceReceivingIdentityKey = bobKeyPackage.identityKeyPair;
-    // final aliceReceivingSignKeyId = bobKeyPackage.signedPreKeyPairId;
-
-    // final aliceReceivingPreKeyId = alicekeyPackage.preKeys[sameKeyIndex].id;
-    // final aliceReceivingPreKeyPublic =
-    //     await alicekeyPackage.preKeys[sameKeyIndex].keyPair!.extractPublicKey();
-    // final aliceReceivingSignKey = alicekeyPackage.signedPreKeyPair;
-    // final aliceReceivingIdentityPublicKey =
-    //     await bobKeyPackage.identityKeyPair.extractPublicKey();
-    // final aliceReceivingSignKeyId = alicekeyPackage.signedPreKeyPairId;
-    // final aliceReceivingRegId = bobKeyPackage.registrationId;
-    // final aliceReceivingSignature = bobKeyPackage.signature;
-
-    // final sign = await encryption.generateSignature(aliceReceivingIdentityKey, aliceReceivingSignKey);
-    // ### 7.2 Alice construct the receiving prekey bundle
-
-    // Alice set key for Bob # use key 0
-    // const aliceBobUserId = 'bob@example.co';
-    // final aliceReceivingBundle = ReceivingPreKeyBundle(
-    //     userId: aliceBobUserId,
-    //     identityKey: aliceReceivingIdentityPublicKey,
-    //     registrationId: aliceReceivingRegId,
-    //     preKey: aliceReceivingPreKeyPublic,
-    //     signedPreKey: await aliceReceivingSignKey.extractPublicKey(),
-    //     preKeyId: aliceReceivingPreKeyId,
-    //     signedPreKeyId: aliceReceivingSignKeyId,
-    //     signature: aliceReceivingSignature);
-    // ### 7.2 Alice construct the receiving prekey bundle
 
     // ### 8 Alice try to init the first cipher session
     Log.instance.d(tag,
         '============================= ALICE start getting the prekey thru whisper message');
     aliceStore.addLocalSignedPreKeyPair(SignedPreKeyPair(
       signedPreKeyId: alicekeyPackage.signedPreKeyPairId,
-      key: alicekeyPackage.signedPreKeyPair,
+      key: alicekeyPackage.signedPreKeyPair.keyPair,
     ));
 
     final aliceSessionFactory = SessionFactory(store: aliceStore);
-    Session
-        _aliceSession = /*await aliceSessionFactory
-        .createSessionFromPreKeyBundle(aliceReceivingBundle); / */
-        Session();
+    Session _aliceSession = Session();
 
     final aliceSession =
         await aliceSessionFactory.createSessionFromPreKeyWhisperMessage(
             _aliceSession, encryptedMessage.body);
     _aliceSession = aliceSession.session;
-    // // ### 9. Alice has the session now try to decrypt message
+    // ### 9. Alice has the session now try to decrypt message
     final aliceCipherSession = SessionCipher();
     final decryptedMessage = await aliceCipherSession
         .decryptPreKeyWhisperMessage(_aliceSession, encryptedMessage.body);
-    print(decryptedMessage);
+    _aliceSession = decryptedMessage.session;
+    print('Result: $decryptedMessage');
     log.d(tag, decryptedMessage);
 
-    // convo
-    // final aliceEncMsgA = await aliceCipherSession.encryptMessage(
-    //     _aliceSession, Utils.convertStringToBytes('Hello Bob'));
-
-    // /// Bob decrypt it?
-    // ///
-    // final plaintext = aliceEncMsgA.isPreKeyWhisperMessage
-    //     ? await bobCipherSession.decryptPreKeyWhisperMessage(
-    //         bobSession, aliceEncMsgA.body)
-    //     : await bobCipherSession.decryptWhisperMessage(
-    //         bobSession, aliceEncMsgA.body);
     expect(bobMessageToAlice, utf8.decode(decryptedMessage.plainText));
+
+    /// Second round
+    const bobMessageToAliceRound2 = 'How are you?';
+
+    final encryptedMessageRound2 = await bobCipherSession.encryptMessage(
+        bobSession, Utils.convertStringToBytes(bobMessageToAliceRound2));
+
+    bobSession = encryptedMessageRound2.session;
+
+    final decryptedMessageRound2 =
+        await aliceCipherSession.decryptPreKeyWhisperMessage(
+            _aliceSession, encryptedMessageRound2.body);
+    _aliceSession = decryptedMessageRound2.session;
+    print('Result - Round 2: $decryptedMessageRound2');
+    expect(
+        bobMessageToAliceRound2, utf8.decode(decryptedMessageRound2.plainText));
   });
 }

@@ -3,7 +3,6 @@ import 'dart:core';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart' as crypto;
-import 'package:cryptography/cryptography.dart';
 import 'package:lib_omemo_encrypt/encryptions/axolotl/axolotl.dart';
 import 'package:lib_omemo_encrypt/kdf/hkdf/hkdfv3.dart';
 import 'package:lib_omemo_encrypt/keys/ecc/keypair.dart';

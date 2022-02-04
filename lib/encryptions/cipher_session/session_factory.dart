@@ -11,7 +11,6 @@ import 'package:lib_omemo_encrypt/encryptions/cipher_session/alice_cipher_sessio
 import 'package:lib_omemo_encrypt/exceptions/invalid_key_exception.dart';
 import 'package:lib_omemo_encrypt/keys/bundle/receiving_prekey_bundle.dart';
 import 'package:lib_omemo_encrypt/keys/ecc/publickey.dart';
-import 'package:lib_omemo_encrypt/keys/noob/nokey_pair.dart';
 import 'package:lib_omemo_encrypt/keys/whisper/identity_key.dart';
 import 'package:lib_omemo_encrypt/keys/whisper/pending_prekey.dart';
 import 'package:lib_omemo_encrypt/keys/whisper/prekey.dart';
@@ -60,9 +59,8 @@ class SessionFactory extends SessionFactoryInterface {
         throw InvalidKeyException('Invalid signature on device key');
       }
     }
-    if (receivingPreKeyBundle.preKey is NoKeyPair &&
-        receivingPreKeyBundle.signedPreKey != null) {
-      throw InvalidKeyException('Both signed and unsigned pre keys are absent');
+    if (receivingPreKeyBundle.signedPreKey == null) {
+      throw InvalidKeyException('Signed pre key is absent');
     }
     final supportsV3 = receivingPreKeyBundle.signedPreKey != null;
     final ourBaseKeyPair = await axololt.generateKeyPair();
@@ -134,13 +132,13 @@ class SessionFactory extends SessionFactoryInterface {
         parameters.theirRatchetKey.key,
         sendingRatchetKeyPair);
     final SessionState sessionState = SessionState(
-      sessionVersion: parameters.sessionVersion,
-      remoteIdentityKey: parameters.theirIdentityKey,
-      localIdentityKey: await parameters.ourIdentityKeyPair.identityKey,
-      rootKey: sendingKeyChain.rootKey,
-      sendingChain: sendingKeyChain.chain,
-      senderRatchetKeyPair: sendingRatchetKeyPair,
-    );
+        sessionVersion: parameters.sessionVersion,
+        remoteIdentityKey: parameters.theirIdentityKey,
+        localIdentityKey: await parameters.ourIdentityKeyPair.identityKey,
+        rootKey: sendingKeyChain.rootKey,
+        sendingChain: sendingKeyChain.chain,
+        senderRatchetKeyPair: sendingRatchetKeyPair,
+        receivingChains: []);
     sessionState.addReceivingChain(
         parameters.theirRatchetKey.key, derivedRootKeyChain.chain);
     return sessionState;
@@ -234,6 +232,7 @@ class SessionFactory extends SessionFactoryInterface {
       rootKey: initialRootKeyChain.rootKey,
       sendingChain: initialRootKeyChain.chain,
       senderRatchetKeyPair: parameters.ourRatchetKeyPair.keyPair,
+      receivingChains: [],
     );
     return sessionState;
   }

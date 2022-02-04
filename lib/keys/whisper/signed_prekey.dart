@@ -11,7 +11,8 @@ class SignedPreKeyPair extends WhisperKey {
 
   ECDHKeyPair get keyPair => _key;
 
-  const SignedPreKeyPair({required key, required this.signedPreKeyId})
+  const SignedPreKeyPair(
+      {required ECDHKeyPair key, required this.signedPreKeyId})
       : _key = key;
 
   @override
