@@ -1,8 +1,11 @@
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lib_omemo_encrypt/lib_omemo_encrypt.dart';
+import 'package:lib_omemo_encrypt/encryptions/axolotl/axolotl.dart';
+import 'package:lib_omemo_encrypt/keys/whisper/identity_keypair.dart';
+import 'package:lib_omemo_encrypt/keys/whisper/prekey.dart';
+import 'package:lib_omemo_encrypt/keys/whisper/signed_prekey.dart';
+import 'package:lib_omemo_encrypt/utils/utils.dart';
 
 const countPreKeys = 20;
 
@@ -10,7 +13,7 @@ void main() {
   final encryption = Axololt();
   test('should generate identity key', () async {
     final identityKeyPair = await encryption.generateIdentityKeyPair();
-    expect(identityKeyPair.runtimeType, SimpleKeyPairData);
+    expect(identityKeyPair.runtimeType, IdentityKeyPair);
   });
   test('should generate registration id', () {
     final regId = encryption.generateRegistrationId();
@@ -20,44 +23,38 @@ void main() {
     final prekeys = await encryption.generatePreKeys(
         Utils.createRandomSequence(), countPreKeys);
     expect(prekeys.length, countPreKeys);
-    expect(prekeys[0].runtimeType, PreKey);
+    expect(prekeys[0].runtimeType, PreKeyPair);
   });
   test('should generate last resort key', () async {
     final lastResortPreKey = await encryption.generateLastResortPreKey();
-    expect(lastResortPreKey.runtimeType, PreKey);
+    expect(lastResortPreKey.runtimeType, PreKeyPair);
   });
   test('should generate signed pre key', () async {
-    final identityKeyPair = await encryption.generateIdentityKeyPair();
-    final signedPreKey =
-        await encryption.generateSignedPreKey(identityKeyPair, 1);
+    final signedPreKey = await encryption.generateSignedPreKey(1);
     expect(signedPreKey.runtimeType, SignedPreKey);
   });
   test('should verify signed pre key signature', () async {
     // final algorithm = Ecdsa.p256(Sha256());
 
     final identityKeyPair = await encryption.generateIdentityKeyPair();
-    final signedPreKey =
-        await encryption.generateSignedPreKey(identityKeyPair, 1);
+    final signedPreKey = await encryption.generateSignedPreKey(1);
     final signature =
         await encryption.generateSignature(identityKeyPair, signedPreKey);
 
     final validSignature = await encryption.verifySignature(
-        Uint8List.fromList((await signedPreKey.extractPublicKey()).bytes),
+        await signedPreKey.keyPair.publicKeyBytes,
         signature,
-        await identityKeyPair.extractPublicKey());
+        await identityKeyPair.keyPair.publicKey);
 
     expect(validSignature, true);
   });
   test('should calculate the agreement between identity key and public key',
       () async {
-    // final algorithm = Ecdsa.p256(Sha256());
-
     final identityKeyPair = await encryption.generateIdentityKeyPair();
-    final signedPreKey =
-        await encryption.generateSignedPreKey(identityKeyPair, 1);
+    final signedPreKey = await encryption.generateSignedPreKey(1);
 
     final agreement1 = await encryption.calculateAgreement(
-        identityKeyPair, (await signedPreKey.extractPublicKey()));
+        identityKeyPair.keyPair, (await signedPreKey.keyPair.publicKey));
 
     expect(agreement1.lengthInBytes, 32);
   });

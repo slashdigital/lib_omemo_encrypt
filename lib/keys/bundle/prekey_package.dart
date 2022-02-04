@@ -1,14 +1,15 @@
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
-import 'package:lib_omemo_encrypt/lib_omemo_encrypt.dart';
+import 'package:lib_omemo_encrypt/keys/whisper/identity_keypair.dart';
+import 'package:lib_omemo_encrypt/keys/whisper/prekey.dart';
+import 'package:lib_omemo_encrypt/keys/whisper/signed_prekey.dart';
 
 class PreKeyPackage {
-  final SimpleKeyPair identityKeyPair;
+  final IdentityKeyPair identityKeyPair;
   final String registrationId;
-  final List<PreKey> preKeys;
+  final List<PreKeyPair> preKeys;
   final int signedPreKeyPairId;
-  final SimpleKeyPair signedPreKeyPair;
+  final SignedPreKey signedPreKeyPair;
   final Uint8List signature;
 
   const PreKeyPackage(

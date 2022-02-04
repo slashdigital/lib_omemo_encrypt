@@ -19,3 +19,22 @@ class PreKeyBundle {
       required this.preKeyId,
       required this.signedPreKeyId});
 }
+
+class PreKeyBundleNew {
+  final String userId;
+  final SimpleKeyPair identityKeyPair;
+  final String registrationId;
+  final PreKey preKey;
+  final SignedPreKey signedPreKey;
+  final int preKeyId;
+  final int signedPreKeyId;
+
+  const PreKeyBundleNew(
+      {required this.userId,
+      required this.identityKeyPair,
+      required this.registrationId,
+      required this.preKey,
+      required this.signedPreKey,
+      required this.preKeyId,
+      required this.signedPreKeyId});
+}
