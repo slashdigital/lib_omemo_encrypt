@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lib_omemo_encrypt/encryptions/cipher_session/session_cipher.dart';
 import 'package:lib_omemo_encrypt/keys/bundle/receiving_prekey_bundle.dart';
@@ -8,18 +6,33 @@ import 'package:lib_omemo_encrypt/keys/whisper/signed_prekey.dart';
 import 'package:lib_omemo_encrypt/lib_omemo_encrypt.dart';
 import 'package:lib_omemo_encrypt/storage/in-memory/memory_storage.dart';
 import 'package:lib_omemo_encrypt/utils/log.dart';
+import 'package:tuple/tuple.dart';
 
 const preKeys = 20;
+enum Person {
+  bob,
+  alice,
+}
 
 void main() {
-  late Log log;
   late Axololt encryption;
+  List<Tuple2<Person, String>> conversationMessages = [
+    const Tuple2<Person, String>(Person.bob, 'Hi Alice'),
+    const Tuple2<Person, String>(Person.bob, 'How are you?'),
+    const Tuple2<Person, String>(Person.alice, 'Hi bob'),
+    const Tuple2<Person, String>(Person.alice, 'I am good'),
+    const Tuple2<Person, String>(Person.bob, 'Alice do you have a minute?'),
+    const Tuple2<Person, String>(Person.alice, 'Yes sure'),
+  ];
+  Map<Person, Tuple3<Session, SessionCipher, SessionFactory>> personSessions =
+      {};
   const tag = 'Axololt';
   setUp(() {
-    log = Log.instance;
     encryption = Axololt();
   });
-  test('should generate prekeys and verify one prekey bundle', () async {
+  test(
+      'should fully encrypt and decrypt 5 messages back and forth between bob and alice',
+      () async {
     /// You get
     /// - prekey
     /// - signedprekey
@@ -93,7 +106,7 @@ void main() {
         </pubsub>
       </iq>
     */
-    Log.instance.d(tag,
+    Log.instance.v(tag,
         '============================= BOB start request for alice key and try to chat');
     // final bobReceivingPreKeyId = alicekeyPackage.preKeys[sameKeyIndex].preKeyId;
     final bobReceivingPreKeyPublic =
@@ -124,13 +137,18 @@ void main() {
     final bobSessionFactory = SessionFactory(store: bobStore);
     var bobSession = await bobSessionFactory
         .createSessionFromPreKeyBundle(bobReceivingBundle);
-    // ### 5. bob try to encrypt and the first whisper key
-    const bobMessageToAlice = 'I want to chat hello';
-    final bobCipherSession = SessionCipher();
-    final encryptedMessage = await bobCipherSession.encryptMessage(
-        bobSession, Utils.convertStringToBytes(bobMessageToAlice));
 
-    bobSession = encryptedMessage.session;
+    final bobCipherSession = SessionCipher();
+    final aliceCipherSession = SessionCipher();
+    personSessions[Person.bob] = Tuple3<Session, SessionCipher, SessionFactory>(
+        bobSession, bobCipherSession, bobSessionFactory);
+    // ### 5. bob try to encrypt and the first whisper key
+    // const bobMessageToAlice = 'I want to chat hello';
+    // final bobCipherSession = SessionCipher();
+    // final encryptedMessage = await bobCipherSession.encryptMessage(
+    //     bobSession, Utils.convertStringToBytes(bobMessageToAlice));
+
+    // bobSession = encryptedMessage.session;
 
     // 6. Bob send message to alice using xmpp and wrapped in the message enc
     /** message envelope - 5.5.1 SCE Profile
@@ -168,14 +186,11 @@ void main() {
       </message>
      */
 
-    log.d(tag, bobSession);
-    log.d(tag, encryptedMessage);
-
     // 7. Alice receive the key and message thru server xmpp?
     // Is it key exchange?
 
     // ### 8 Alice try to init the first cipher session
-    Log.instance.d(tag,
+    Log.instance.v(tag,
         '============================= ALICE start getting the prekey thru whisper message');
     aliceStore.addLocalSignedPreKeyPair(SignedPreKeyPair(
       signedPreKeyId: alicekeyPackage.signedPreKeyPairId,
@@ -184,35 +199,63 @@ void main() {
 
     final aliceSessionFactory = SessionFactory(store: aliceStore);
     Session _aliceSession = Session();
+    personSessions[Person.alice] =
+        Tuple3<Session, SessionCipher, SessionFactory>(
+            _aliceSession, aliceCipherSession, aliceSessionFactory);
 
-    final aliceSession =
-        await aliceSessionFactory.createSessionFromPreKeyWhisperMessage(
-            _aliceSession, encryptedMessage.body);
-    _aliceSession = aliceSession.session;
-    // ### 9. Alice has the session now try to decrypt message
-    final aliceCipherSession = SessionCipher();
-    final decryptedMessage = await aliceCipherSession
-        .decryptPreKeyWhisperMessage(_aliceSession, encryptedMessage.body);
-    _aliceSession = decryptedMessage.session;
-    print('Result: $decryptedMessage');
-    log.d(tag, decryptedMessage);
+    /// Looping conversation test
+    ///
+    int passedCaseCounter = 0;
+    for (var index = 0; index < conversationMessages.length; index++) {
+      final messageTuple = conversationMessages[index];
+      final message = messageTuple.item2;
+      final sender = messageTuple.item1;
+      final receiver = sender == Person.bob ? Person.alice : Person.bob;
+      final senderSession = personSessions[sender]!.item1;
+      final senderSessionCipher = personSessions[sender]!.item2;
+      final senderSessionFactory = personSessions[sender]!.item3;
+      var receiverSession = personSessions[receiver]!.item1;
+      final receiverSessionCipher = personSessions[receiver]!.item2;
+      final receiverSessionFactory = personSessions[receiver]!.item3;
 
-    expect(bobMessageToAlice, utf8.decode(decryptedMessage.plainText));
+      final encryptedMsg = await senderSessionCipher.encryptMessage(
+          senderSession, Utils.convertStringToBytes(message));
+      Log.instance.v(tag,
+          '$sender: Send - $message - Encrypted to (${encryptedMsg.body}}');
+      personSessions[sender] = Tuple3<Session, SessionCipher, SessionFactory>(
+          encryptedMsg.session, senderSessionCipher, senderSessionFactory);
 
-    /// Second round
-    const bobMessageToAliceRound2 = 'How are you?';
+      if (encryptedMsg.isPreKeyWhisperMessage) {
+        final _ciperSession =
+            await receiverSessionFactory.createSessionFromPreKeyWhisperMessage(
+                receiverSession, encryptedMsg.body);
+        receiverSession = _ciperSession.session;
 
-    final encryptedMessageRound2 = await bobCipherSession.encryptMessage(
-        bobSession, Utils.convertStringToBytes(bobMessageToAliceRound2));
+        final decrypedMessage = await receiverSessionCipher
+            .decryptPreKeyWhisperMessage(receiverSession, encryptedMsg.body);
 
-    bobSession = encryptedMessageRound2.session;
+        Log.instance.v(tag,
+            '$receiver: Receive - $message - Decrypted from (${encryptedMsg.body}}');
+        personSessions[receiver] =
+            Tuple3<Session, SessionCipher, SessionFactory>(
+                decrypedMessage.session,
+                receiverSessionCipher,
+                receiverSessionFactory);
+      } else {
+        final decrypedMessage = await receiverSessionCipher
+            .decryptWhisperMessage(receiverSession, encryptedMsg.body);
 
-    final decryptedMessageRound2 =
-        await aliceCipherSession.decryptPreKeyWhisperMessage(
-            _aliceSession, encryptedMessageRound2.body);
-    _aliceSession = decryptedMessageRound2.session;
-    print('Result - Round 2: $decryptedMessageRound2');
-    expect(
-        bobMessageToAliceRound2, utf8.decode(decryptedMessageRound2.plainText));
+        Log.instance.v(tag,
+            '$receiver: Receive - $message - Decrypted from (${encryptedMsg.body}}');
+        personSessions[receiver] =
+            Tuple3<Session, SessionCipher, SessionFactory>(
+                decrypedMessage.session,
+                receiverSessionCipher,
+                receiverSessionFactory);
+      }
+
+      passedCaseCounter++;
+    }
+    expect(passedCaseCounter, conversationMessages.length);
   });
 }

@@ -2,8 +2,6 @@
 
 import 'dart:developer';
 
-import 'package:flutter/foundation.dart';
-
 class Log {
   static Log? _instane;
 
@@ -34,9 +32,6 @@ class Log {
 
   void w(String tag, dynamic message) {
     if (logLevel.index <= LogLevel.WARNING.index) {
-      if (kDebugMode) {
-        print('W/[$tag]: $message');
-      }
       log('W/[$tag]: $message');
     }
   }

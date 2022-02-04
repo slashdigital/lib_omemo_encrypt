@@ -195,7 +195,6 @@ class SessionCipher extends SessionCipherInterface {
     final _plainText = unpad(Uint8List.fromList(plainText));
     newSessionState.pending = null;
     Log.instance.d(tag, 'Plain text: ${utf8.decode(_plainText)}');
-    print('Plain text: ${utf8.decode(_plainText)}');
     return Tuple2<SessionState, Uint8List>(newSessionState, _plainText);
   }
 
@@ -291,7 +290,6 @@ class SessionCipher extends SessionCipherInterface {
       Log.instance.d(tag, 'Before - _chain index: ${chain.index}');
       Log.instance.d(tag, 'Before - _chain key: ${chain.key}');
       var messageKeys = await rachet.deriveMessageKeys(chain.key);
-      print(messageKeys);
       await rachet.clickSubRachet(chain);
       // Set next chain
       sessionState.setReceivingChain(theirEphemeralPublicKey, chain);
