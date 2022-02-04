@@ -11,5 +11,7 @@ enum WhisperKeyType {
   identityKeyPair,
   pendingPreKey,
   preKeyPair,
+  preKey,
   signedPreKey,
+  signedPreKeyPair,
 }

@@ -1,16 +1,16 @@
-import 'package:cryptography/cryptography.dart';
+import 'package:lib_omemo_encrypt/keys/whisper/identity_keypair.dart';
+import 'package:lib_omemo_encrypt/keys/whisper/prekey.dart';
+import 'package:lib_omemo_encrypt/keys/whisper/signed_prekey.dart';
 import 'package:lib_omemo_encrypt/sessions/session.dart';
-import 'package:lib_omemo_encrypt/keys/signed_prekey.dart';
-import 'package:lib_omemo_encrypt/keys/prekey.dart';
 import 'package:lib_omemo_encrypt/keys/bundle/prekey_bundle.dart';
 import 'package:lib_omemo_encrypt/storage/storage_interface.dart';
 import 'package:tuple/tuple.dart';
 
 class MemoryStorage extends StorageInterface {
   final String localRegistrationId;
-  final SimpleKeyPair localIdentityKeyPair;
-  late Iterable<Tuple2<int, PreKey>> localPreKeyPairs;
-  late List<Tuple2<int, SignedPreKey>> localSignedPreKeyPairs = [];
+  final IdentityKeyPair localIdentityKeyPair;
+  late Iterable<Tuple2<int, PreKeyPair>> localPreKeyPairs;
+  late List<Tuple2<int, SignedPreKeyPair>> localSignedPreKeyPairs = [];
   late PreKeyBundle remotePreKeyBundle;
 
   MemoryStorage(
@@ -29,16 +29,16 @@ class MemoryStorage extends StorageInterface {
   }
 
   @override
-  SimpleKeyPair getLocalIdentityKeyPair() {
+  IdentityKeyPair getLocalIdentityKeyPair() {
     return localIdentityKeyPair;
   }
 
   @override
-  PreKey getLocalPreKeyPair(int preKeyId) =>
+  PreKeyPair getLocalPreKeyPair(int preKeyId) =>
       _findExistingById(localPreKeyPairs, preKeyId)!.item2;
 
   @override
-  SignedPreKey getLocalSignedPreKeyPair(int signedPreKeyId) =>
+  SignedPreKeyPair getLocalSignedPreKeyPair(int signedPreKeyId) =>
       _findExistingById(localSignedPreKeyPairs, signedPreKeyId)!.item2;
 
   @override
@@ -46,45 +46,42 @@ class MemoryStorage extends StorageInterface {
 
   @override
   Session getSession() {
-    // TODO: implement getSession
     throw UnimplementedError();
   }
 
   @override
   bool hasSession() {
-    // TODO: implement hasSession
     throw UnimplementedError();
   }
 
   @override
   initKeys() {
-    // TODO: implement initKeys
     throw UnimplementedError();
   }
 
   @override
   bool isRemoteIdentityTrusted() {
-    // TODO: implement isRemoteIdentityTrusted
     throw UnimplementedError();
   }
 
   @override
   Session putSession() {
-    // TODO: implement putSession
     throw UnimplementedError();
   }
 
   @override
-  setLocalPreKeyPair(List<PreKey> prekeys) {
-    localPreKeyPairs = prekeys.map<Tuple2<int, PreKey>>((e) => Tuple2(e.id, e));
+  setLocalPreKeyPair(List<PreKeyPair> prekeys) {
+    localPreKeyPairs =
+        prekeys.map<Tuple2<int, PreKeyPair>>((e) => Tuple2(e.preKeyId, e));
   }
 
   @override
-  void addLocalSignedPreKeyPair(SignedPreKey signedPreKey) {
-    final existing = _findExistingById(localSignedPreKeyPairs, signedPreKey.id);
+  void addLocalSignedPreKeyPair(SignedPreKeyPair signedPreKey) {
+    final existing =
+        _findExistingById(localSignedPreKeyPairs, signedPreKey.signedPreKeyId);
     if (existing == null) {
-      localSignedPreKeyPairs
-          .add(Tuple2<int, SignedPreKey>(signedPreKey.id, signedPreKey));
+      localSignedPreKeyPairs.add(Tuple2<int, SignedPreKeyPair>(
+          signedPreKey.signedPreKeyId, signedPreKey));
     }
   }
 }

@@ -6,7 +6,7 @@ class IdentityKey extends WhisperKey {
   final ECDHPublicKey _key;
   final WhisperKeyType _keyType = WhisperKeyType.identityKey;
 
-  ECDHPublicKey get publicKey => _key;
+  ECDHPublicKey get key => _key;
 
   const IdentityKey({
     required key,

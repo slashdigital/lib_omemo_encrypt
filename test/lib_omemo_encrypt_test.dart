@@ -1,17 +1,13 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lib_omemo_encrypt/encryptions/cipher_session/session_cipher.dart';
-import 'package:lib_omemo_encrypt/keys/bundle/prekey_bundle.dart';
-import 'package:lib_omemo_encrypt/keys/bundle/prekey_bundle_manager.dart';
 import 'package:lib_omemo_encrypt/keys/bundle/receiving_prekey_bundle.dart';
+import 'package:lib_omemo_encrypt/keys/whisper/signed_prekey.dart';
 
 import 'package:lib_omemo_encrypt/lib_omemo_encrypt.dart';
 import 'package:lib_omemo_encrypt/storage/in-memory/memory_storage.dart';
 import 'package:lib_omemo_encrypt/utils/log.dart';
-import 'package:lib_omemo_encrypt/utils/utils.dart';
 
 const _COUNT_PREKEYS = 20;
 
@@ -101,12 +97,11 @@ void main() {
     */
     Log.instance.d(tag,
         '============================= BOB start request for alice key and try to chat');
-    final bobReceivingPreKeyId = alicekeyPackage.preKeys[sameKeyIndex].id;
+    // final bobReceivingPreKeyId = alicekeyPackage.preKeys[sameKeyIndex].preKeyId;
     final bobReceivingPreKeyPublic =
-        await alicekeyPackage.preKeys[sameKeyIndex].keyPair!.extractPublicKey();
+        await alicekeyPackage.preKeys[sameKeyIndex].preKey;
     final bobReceivingSignKey = alicekeyPackage.signedPreKeyPair;
     final bobReceivingIdentityKey = alicekeyPackage.identityKeyPair;
-    final bobReceivingSignKeyId = alicekeyPackage.signedPreKeyPairId;
     final signature = alicekeyPackage.signature;
     // ### 3.3 Bob construct the receiving prekey bundle
 
@@ -114,12 +109,10 @@ void main() {
     const bobAliceUserId = 'alice@example.co';
     final bobReceivingBundle = ReceivingPreKeyBundle(
         userId: bobAliceUserId,
-        identityKey: await bobReceivingIdentityKey.extractPublicKey(),
+        identityKey: await bobReceivingIdentityKey.identityKey,
         registrationId: bobKeyPackage.registrationId,
         preKey: bobReceivingPreKeyPublic,
-        signedPreKey: await bobReceivingSignKey.extractPublicKey(),
-        preKeyId: bobReceivingPreKeyId,
-        signedPreKeyId: bobReceivingSignKeyId,
+        signedPreKey: await bobReceivingSignKey.signedPreKey,
         signature: signature);
 
     // ### 3.4 ? bob store alice prekey in his local storage
@@ -222,10 +215,10 @@ void main() {
     // ### 8 Alice try to init the first cipher session
     Log.instance.d(tag,
         '============================= ALICE start getting the prekey thru whisper message');
-    aliceStore.addLocalSignedPreKeyPair(SignedPreKey(
-        id: alicekeyPackage.signedPreKeyPairId,
-        keyPair: alicekeyPackage.signedPreKeyPair,
-        signature: alicekeyPackage.signature));
+    aliceStore.addLocalSignedPreKeyPair(SignedPreKeyPair(
+      signedPreKeyId: alicekeyPackage.signedPreKeyPairId,
+      key: alicekeyPackage.signedPreKeyPair,
+    ));
 
     final aliceSessionFactory = SessionFactory(store: aliceStore);
     Session

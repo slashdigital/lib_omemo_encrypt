@@ -1,17 +1,19 @@
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
-import 'package:lib_omemo_encrypt/lib_omemo_encrypt.dart';
+import 'package:lib_omemo_encrypt/keys/whisper/identity_key.dart';
+import 'package:lib_omemo_encrypt/keys/whisper/prekey.dart';
+import 'package:lib_omemo_encrypt/keys/whisper/signed_prekey.dart';
 
 class ReceivingPreKeyBundle {
   final String userId;
-  final SimplePublicKey identityKey;
+  final IdentityKey identityKey;
   final String registrationId;
-  final SimplePublicKey preKey;
-  final SimplePublicKey? signedPreKey;
-  final int preKeyId;
-  final int signedPreKeyId;
+  final PreKey preKey;
+  final SignedPreKey? signedPreKey;
   final Uint8List signature;
+
+  int get preKeyId => preKey.preKeyId;
+  int get signedPreKeyId => signedPreKey!.signedPreKeyId;
 
   const ReceivingPreKeyBundle(
       {required this.userId,
@@ -19,7 +21,5 @@ class ReceivingPreKeyBundle {
       required this.registrationId,
       required this.preKey,
       required this.signedPreKey,
-      required this.preKeyId,
-      required this.signedPreKeyId,
       required this.signature});
 }

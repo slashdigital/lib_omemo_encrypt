@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
+import 'package:lib_omemo_encrypt/keys/ecc/keypair.dart';
+import 'package:lib_omemo_encrypt/keys/ecc/publickey.dart';
 import 'package:lib_omemo_encrypt/rachet/chain.dart';
 import 'package:lib_omemo_encrypt/rachet/key_and_chain.dart';
 import 'package:lib_omemo_encrypt/rachet/message_key.dart';
@@ -72,11 +73,10 @@ abstract class RachetInterface {
       int sessionVersion, List<ByteBuffer> agreements);
   Future<KeyAndChain> deriveNextRootKeyAndChain(
       Uint8List rootKey,
-      SimplePublicKey theirEphemeralPublicKey,
-      SimpleKeyPair ourEphemeralPrivateKey);
+      ECDHPublicKey theirEphemeralPublicKey,
+      ECDHKeyPair ourEphemeralPrivateKey);
   Future<Chain> clickSubRachet(Chain chain);
   Future<MessageKey> deriveMessageKeys(Uint8List chainKey);
-  hmacByte();
   Future<Uint8List> deriveMessageKey(Uint8List chainKey);
   Future<Uint8List> deriveNextChainKey(Uint8List chainKey);
 }

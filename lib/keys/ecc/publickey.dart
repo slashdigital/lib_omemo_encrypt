@@ -12,4 +12,8 @@ class ECDHPublicKey extends ECDHKey {
 
   @override
   Future<Uint8List> get bytes async => Uint8List.fromList(_publicKey.bytes);
+
+  static ECDHPublicKey fromBytes(List<int> bytes) {
+    return ECDHPublicKey(SimplePublicKey(bytes, type: KeyPairType.x25519));
+  }
 }

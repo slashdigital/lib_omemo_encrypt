@@ -9,7 +9,7 @@ class PreKeyPackage {
   final String registrationId;
   final List<PreKeyPair> preKeys;
   final int signedPreKeyPairId;
-  final SignedPreKey signedPreKeyPair;
+  final SignedPreKeyPair signedPreKeyPair;
   final Uint8List signature;
 
   const PreKeyPackage(

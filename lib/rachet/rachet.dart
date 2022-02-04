@@ -6,6 +6,8 @@ import 'package:crypto/crypto.dart' as crypto;
 import 'package:cryptography/cryptography.dart';
 import 'package:lib_omemo_encrypt/encryptions/axolotl/axolotl.dart';
 import 'package:lib_omemo_encrypt/kdf/hkdf/hkdfv3.dart';
+import 'package:lib_omemo_encrypt/keys/ecc/keypair.dart';
+import 'package:lib_omemo_encrypt/keys/ecc/publickey.dart';
 import 'package:lib_omemo_encrypt/rachet/chain.dart';
 import 'package:lib_omemo_encrypt/rachet/key_and_chain.dart';
 import 'package:lib_omemo_encrypt/rachet/message_key.dart';
@@ -80,8 +82,8 @@ class Rachet extends RachetInterface {
   @override
   Future<KeyAndChain> deriveNextRootKeyAndChain(
       Uint8List rootKey,
-      SimplePublicKey theirEphemeralPublicKey,
-      SimpleKeyPair ourEphemeralPrivateKey) async {
+      ECDHPublicKey theirEphemeralPublicKey,
+      ECDHKeyPair ourEphemeralPrivateKey) async {
     final sharedSecret = await axololt.calculateAgreement(
         ourEphemeralPrivateKey, theirEphemeralPublicKey);
 
@@ -102,11 +104,5 @@ class Rachet extends RachetInterface {
     final hmacSha256 = crypto.Hmac(crypto.sha256, chainKey);
     final digest = hmacSha256.convert([chainKeySeed]);
     return Uint8List.fromList(digest.bytes);
-  }
-
-  @override
-  hmacByte() {
-    // TODO: implement hmacByte
-    throw UnimplementedError();
   }
 }

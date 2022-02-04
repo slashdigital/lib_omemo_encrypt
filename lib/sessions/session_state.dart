@@ -1,25 +1,25 @@
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
-import 'package:lib_omemo_encrypt/keys/key.dart';
-import 'package:lib_omemo_encrypt/keys/pending_prekey.dart';
-import 'package:lib_omemo_encrypt/lib_omemo_encrypt.dart';
+import 'package:lib_omemo_encrypt/keys/ecc/keypair.dart';
+import 'package:lib_omemo_encrypt/keys/ecc/publickey.dart';
+import 'package:lib_omemo_encrypt/keys/whisper/identity_key.dart';
+import 'package:lib_omemo_encrypt/keys/whisper/pending_prekey.dart';
+import 'package:lib_omemo_encrypt/keys/whisper/prekey.dart';
 import 'package:lib_omemo_encrypt/rachet/chain.dart';
-import 'package:lib_omemo_encrypt/rachet/key_and_chain.dart';
 import 'package:lib_omemo_encrypt/rachet/publickey_and_chain.dart';
 
 const maximumRetainedReceivedChainKeys = 20;
 
 class SessionState {
   final int sessionVersion;
-  final SimplePublicKey remoteIdentityKey; // their
-  final SimplePublicKey localIdentityKey;
+  final IdentityKey remoteIdentityKey; // their
+  final IdentityKey localIdentityKey;
   late final String localRegistrationId;
-  SimplePublicKey? theirBaseKey;
+  PreKey? theirBaseKey;
   // Ratchet parameters
   final Uint8List rootKey;
   final Chain sendingChain;
-  final SimpleKeyPair senderRatchetKeyPair;
+  final ECDHKeyPair senderRatchetKeyPair;
   final List<PublicKeyAndChain> receivingChains =
       []; // Keep a small list of chain keys to allow for out of order message delivery.
   final int previousCounter = 0;
@@ -34,7 +34,7 @@ class SessionState {
     required this.senderRatchetKeyPair,
   });
 
-  Chain? findReceivingChain(SimplePublicKey theirEphemeralPublicKey) {
+  Chain? findReceivingChain(ECDHPublicKey theirEphemeralPublicKey) {
     final keyPair = theirEphemeralPublicKey;
     for (var i = 0; i < receivingChains.length; i++) {
       var receivingChain = receivingChains[i];
@@ -45,7 +45,7 @@ class SessionState {
     return null;
   }
 
-  addReceivingChain(PublicKey theirEphemeralPublicKey, Chain chain) async {
+  addReceivingChain(ECDHPublicKey theirEphemeralPublicKey, Chain chain) async {
     receivingChains.add(PublicKeyAndChain(
         ephemeralPublicKey: theirEphemeralPublicKey, chain: chain));
     // We don't keep an infinite number of chain keys, as this would compromise forward secrecy.
@@ -54,7 +54,7 @@ class SessionState {
     }
   }
 
-  setReceivingChain(PublicKey theirEphemeralPublicKey, Chain chain) async {
+  setReceivingChain(ECDHPublicKey theirEphemeralPublicKey, Chain chain) async {
     final index = receivingChains.indexWhere((receivingChain) =>
         receivingChain.ephemeralPublicKey == theirEphemeralPublicKey);
     if (index != -1) {

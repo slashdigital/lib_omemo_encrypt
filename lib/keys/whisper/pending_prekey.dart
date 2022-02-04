@@ -13,7 +13,9 @@ class PendingPreKey extends WhisperKey {
   ECDHPublicKey get publicKey => _key;
 
   const PendingPreKey(
-      {required this.preKeyId, required key, required this.signedPreKeyId})
+      {required this.preKeyId,
+      required ECDHPublicKey key,
+      required this.signedPreKeyId})
       : _key = key;
 
   @override

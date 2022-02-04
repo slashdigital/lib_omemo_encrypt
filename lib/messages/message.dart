@@ -79,8 +79,8 @@ class Message extends MessageInterface {
   encodePreKeyWhisperMessage(
       MessageVersion version, KeyExchangeMessage keyExchangeMessage) async {
     var messageBytes = omemo_proto.OMEMOKeyExchange(
-            ek: keyExchangeMessage.baseKey.bytes,
-            ik: keyExchangeMessage.identityKey.bytes,
+            ek: await keyExchangeMessage.baseKey.bytes,
+            ik: await keyExchangeMessage.identityKey.bytes,
             registrationId: base64Url.decode(keyExchangeMessage.registrationId),
             pkId: keyExchangeMessage.preKeyId,
             spkId: keyExchangeMessage.signedPreKeyId,
@@ -92,20 +92,22 @@ class Message extends MessageInterface {
   }
 
   @override
-  Uint8List encodeWhisperMessage(
-      MessageVersion version, OmemoMessage message, Uint8List mac) {
-    return ArrayBufferUtils.concat(
-        [encodeWhisperMessageMacInput(version, message).buffer, mac.buffer]);
+  Future<Uint8List> encodeWhisperMessage(
+      MessageVersion version, OmemoMessage message, Uint8List mac) async {
+    return ArrayBufferUtils.concat([
+      (await encodeWhisperMessageMacInput(version, message)).buffer,
+      mac.buffer
+    ]);
   }
 
   @override
-  Uint8List encodeWhisperMessageMacInput(
-      MessageVersion version, OmemoMessage message) {
+  Future<Uint8List> encodeWhisperMessageMacInput(
+      MessageVersion version, OmemoMessage message) async {
     final versionByte = _getVersionField(version);
     final messageBytes = omemo_message_proto.OMEMOMessage(
             n: message.counter,
             pn: message.previousCounter,
-            dhPub: message.ratchetKey.bytes,
+            dhPub: await message.ratchetKey.bytes,
             ciphertext: message.ciphertext)
         .writeToBuffer()
         .buffer;

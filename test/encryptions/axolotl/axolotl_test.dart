@@ -31,7 +31,7 @@ void main() {
   });
   test('should generate signed pre key', () async {
     final signedPreKey = await encryption.generateSignedPreKey(1);
-    expect(signedPreKey.runtimeType, SignedPreKey);
+    expect(signedPreKey.runtimeType, SignedPreKeyPair);
   });
   test('should verify signed pre key signature', () async {
     // final algorithm = Ecdsa.p256(Sha256());

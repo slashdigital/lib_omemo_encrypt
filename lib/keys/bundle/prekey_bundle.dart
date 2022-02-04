@@ -1,40 +1,22 @@
-import 'package:cryptography/cryptography.dart';
-import 'package:lib_omemo_encrypt/lib_omemo_encrypt.dart';
+import 'package:lib_omemo_encrypt/keys/whisper/identity_keypair.dart';
+import 'package:lib_omemo_encrypt/keys/whisper/prekey.dart';
+import 'package:lib_omemo_encrypt/keys/whisper/signed_prekey.dart';
 
 class PreKeyBundle {
   final String userId;
-  final SimpleKeyPair identityKeyPair;
+  final IdentityKeyPair identityKeyPair;
   final String registrationId;
-  final PreKey preKey;
-  final SignedPreKey signedPreKey;
-  final int preKeyId;
-  final int signedPreKeyId;
+  final PreKeyPair preKey;
+  final SignedPreKeyPair signedPreKey;
 
-  const PreKeyBundle(
-      {required this.userId,
-      required this.identityKeyPair,
-      required this.registrationId,
-      required this.preKey,
-      required this.signedPreKey,
-      required this.preKeyId,
-      required this.signedPreKeyId});
-}
+  int get preKeyId => preKey.preKeyId;
+  int get signedPreKeyId => signedPreKey.signedPreKeyId;
 
-class PreKeyBundleNew {
-  final String userId;
-  final SimpleKeyPair identityKeyPair;
-  final String registrationId;
-  final PreKey preKey;
-  final SignedPreKey signedPreKey;
-  final int preKeyId;
-  final int signedPreKeyId;
-
-  const PreKeyBundleNew(
-      {required this.userId,
-      required this.identityKeyPair,
-      required this.registrationId,
-      required this.preKey,
-      required this.signedPreKey,
-      required this.preKeyId,
-      required this.signedPreKeyId});
+  const PreKeyBundle({
+    required this.userId,
+    required this.identityKeyPair,
+    required this.registrationId,
+    required this.preKey,
+    required this.signedPreKey,
+  });
 }

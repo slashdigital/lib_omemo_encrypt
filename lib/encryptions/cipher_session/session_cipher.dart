@@ -6,6 +6,7 @@ import 'package:crypto/crypto.dart' as crypto;
 import 'package:lib_omemo_encrypt/encryptions/axolotl/axolotl.dart';
 import 'package:lib_omemo_encrypt/encryptions/cbc/cbc.dart';
 import 'package:lib_omemo_encrypt/encryptions/cipher_session/session_cipher_interface.dart';
+import 'package:lib_omemo_encrypt/keys/ecc/publickey.dart';
 import 'package:lib_omemo_encrypt/messages/message.dart';
 import 'package:lib_omemo_encrypt/messages/omemo_message.dart';
 import 'package:lib_omemo_encrypt/rachet/chain.dart';
@@ -26,8 +27,7 @@ class SessionCipher extends SessionCipherInterface {
 
   @override
   Future<Tuple2<SessionState, Chain>> clickMainRatchet(
-      SessionState sessionState,
-      SimplePublicKey theirEphemeralPublicKey) async {
+      SessionState sessionState, ECDHPublicKey theirEphemeralPublicKey) async {
     final receiverChain = await rachet.deriveNextRootKeyAndChain(
         sessionState.rootKey,
         theirEphemeralPublicKey,
@@ -61,8 +61,8 @@ class SessionCipher extends SessionCipherInterface {
             registrationId: session.mostRecentState().localRegistrationId,
             preKeyId: pendingPreKey!.preKeyId,
             signedPreKeyId: pendingPreKey.signedPreKeyId,
-            baseKey: pendingPreKey.baseKey,
-            identityKey: session.mostRecentState().localIdentityKey,
+            baseKey: pendingPreKey.publicKey,
+            identityKey: session.mostRecentState().localIdentityKey.key,
             message: whisperMessage));
   }
 
@@ -87,10 +87,8 @@ class SessionCipher extends SessionCipherInterface {
     final MessageVersion version = MessageVersion(
         session.mostRecentState().sessionVersion, currentVersion);
     final message = OmemoMessage(
-      ratchetKey: await session
-          .mostRecentState()
-          .senderRatchetKeyPair
-          .extractPublicKey(),
+      ratchetKey:
+          await session.mostRecentState().senderRatchetKeyPair.publicKey,
       counter: session.mostRecentState().sendingChain.index,
       previousCounter: session.mostRecentState().previousCounter,
       ciphertext: cipertext,
@@ -101,7 +99,7 @@ class SessionCipher extends SessionCipherInterface {
     Log.instance.d(tag, 'previousCounter: ${message.previousCounter}');
     Log.instance.d(tag, 'ciphertext: ${message.ciphertext}');
 
-    final macInputBytes = Message.message.encodeWhisperMessageMacInput(
+    final macInputBytes = await Message.message.encodeWhisperMessageMacInput(
       version,
       message,
     );
@@ -109,15 +107,15 @@ class SessionCipher extends SessionCipherInterface {
     Log.instance.d(tag, 'macInputBytes: $macInputBytes');
     Log.instance.d(tag, 'messageKeys.macKey: ${messageKeys.macKey}');
 
-    final whisperMessage = Message.message.encodeWhisperMessage(
+    final whisperMessage = await Message.message.encodeWhisperMessage(
         version,
         message,
         await getMac(
             macInputBytes,
             messageKeys.macKey,
             session.mostRecentState().sessionVersion,
-            session.mostRecentState().localIdentityKey,
-            session.mostRecentState().remoteIdentityKey));
+            session.mostRecentState().localIdentityKey.key,
+            session.mostRecentState().remoteIdentityKey.key));
     Log.instance.d(tag, 'full message: $whisperMessage');
     return whisperMessage;
   }
@@ -176,8 +174,7 @@ class SessionCipher extends SessionCipherInterface {
       throw Exception("Message version doesn't match session version");
     }
     final message = omemoMessage.message;
-    final theirEphemeralPublicKey =
-        SimplePublicKey(message.dhPub, type: KeyPairType.x25519);
+    final theirEphemeralPublicKey = ECDHPublicKey.fromBytes(message.dhPub);
     Log.instance.d(tag,
         'Decrypting - theirEphemeralPublicKey: ${theirEphemeralPublicKey.bytes}');
     final receivingChain =
@@ -191,8 +188,8 @@ class SessionCipher extends SessionCipherInterface {
         macInputTypes,
         messageKeys.macKey,
         omemoMessage.version.current,
-        newSessionState.remoteIdentityKey,
-        newSessionState.localIdentityKey,
+        newSessionState.remoteIdentityKey.key,
+        newSessionState.localIdentityKey.key,
         omemoMessage.mac);
     if (!isValid) {
       throw Exception('Bad Mac');
@@ -238,8 +235,8 @@ class SessionCipher extends SessionCipherInterface {
       Uint8List data,
       Uint8List macKey,
       int messageVersion,
-      SimplePublicKey senderIdentityKey,
-      SimplePublicKey receiverIdentityKey) async {
+      ECDHPublicKey senderIdentityKey,
+      ECDHPublicKey receiverIdentityKey) async {
     final mac = crypto.Hmac(crypto.sha256, macKey);
 
     // final mac = await hmac.calculateMac(
@@ -250,8 +247,8 @@ class SessionCipher extends SessionCipherInterface {
     final output = AccumulatorSink<crypto.Digest>();
     if (messageVersion >= 3) {
       mac.startChunkedConversion(output)
-        ..add(senderIdentityKey.bytes)
-        ..add(receiverIdentityKey.bytes)
+        ..add(await senderIdentityKey.bytes)
+        ..add(await receiverIdentityKey.bytes)
         ..add(data)
         ..close();
     } else {
@@ -277,7 +274,7 @@ class SessionCipher extends SessionCipherInterface {
 
   /// Chain will reference from passing to out, expecting index + 1
   Future<MessageKey> getOrCreateMessageKeys(SessionState sessionState,
-      SimplePublicKey theirEphemeralPublicKey, Chain chain, int counter) async {
+      ECDHPublicKey theirEphemeralPublicKey, Chain chain, int counter) async {
     if (chain.index > counter) {
       // The message is an old message that has been delivered out of order. We should still have the message
       // key cached unless this is a duplicate message that we've seen before.
@@ -317,8 +314,7 @@ class SessionCipher extends SessionCipherInterface {
 
   @override
   Future<Tuple2<SessionState, Chain>> getOrCreateReceivingChain(
-      SessionState sessionState,
-      SimplePublicKey theirEphemeralPublicKey) async {
+      SessionState sessionState, ECDHPublicKey theirEphemeralPublicKey) async {
     var chain = sessionState.findReceivingChain(theirEphemeralPublicKey);
     if (chain != null) {
       return Tuple2<SessionState, Chain>(sessionState, chain);
@@ -332,8 +328,8 @@ class SessionCipher extends SessionCipherInterface {
       Uint8List data,
       Uint8List macKey,
       int messageVersion,
-      SimplePublicKey senderIdentityKey,
-      SimplePublicKey receiverIdentityKey,
+      ECDHPublicKey senderIdentityKey,
+      ECDHPublicKey receiverIdentityKey,
       Uint8List theirMac) async {
     var ourMac = await getMac(
         data, macKey, messageVersion, senderIdentityKey, receiverIdentityKey);

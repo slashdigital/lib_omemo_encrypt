@@ -60,9 +60,9 @@ class Axololt extends AxololtInterface {
   /// There are essentially two ways in which libraries can fulfill these requirements:
   /// Libraries can use a Curve25519 key pair as their internal IdentityKey. In this case, the IdentityKey can be used for X25519 directly, and XEdDSA has to be used to produce EdDSA-compatible signatures. Note that libsignal by default does NOT use XEdDSA. libsignal includes XEdDSA though and has to be modified to use that to be compatible with OMEMO.
   /// Libraries can use an Ed25519 key pair as their internal IdentityKey. In this case, the IdentityKey can create EdDSA-compatible signatures directly, and has to be converted first to perform X25519.
-  Future<SignedPreKey> generateSignedPreKey(int signedPreKeyId) async {
+  Future<SignedPreKeyPair> generateSignedPreKey(int signedPreKeyId) async {
     // Generate a keypair.
-    final keyPair = SignedPreKey(
+    final keyPair = SignedPreKeyPair(
         key: await generateKeyPair(), signedPreKeyId: signedPreKeyId);
     return keyPair;
   }
@@ -71,7 +71,7 @@ class Axololt extends AxololtInterface {
 
   /// Sign using Elliptic Curve Digital Signature Algorithm (ECDSA) using P256
   Future<Uint8List> generateSignature(
-      IdentityKeyPair identityKeyPair, SignedPreKey signedPreKey) async {
+      IdentityKeyPair identityKeyPair, SignedPreKeyPair signedPreKey) async {
     final privateKey = await identityKeyPair.keyPair.bytes;
     final message = await signedPreKey.keyPair.publicKeyBytes;
     final signature = sign(

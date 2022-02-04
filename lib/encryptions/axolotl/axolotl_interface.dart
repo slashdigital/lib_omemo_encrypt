@@ -17,9 +17,9 @@ abstract class AxololtInterface {
   Future<PreKeyPair> generateLastResortPreKey();
   Future<List<PreKeyPair>> generatePreKeys(int start, int count);
   String generateRegistrationId();
-  Future<SignedPreKey> generateSignedPreKey(int signedPreKeyId);
+  Future<SignedPreKeyPair> generateSignedPreKey(int signedPreKeyId);
   Future<Uint8List> generateSignature(
-      IdentityKeyPair identityKeyPair, SignedPreKey signedPreKey);
+      IdentityKeyPair identityKeyPair, SignedPreKeyPair signedPreKey);
   Future<bool> verifySignature(
       Uint8List data, Uint8List signature, ECDHPublicKey publicKey);
   Future<PreKeyPackage> generatePreKeysPackage(int preKeyCount);

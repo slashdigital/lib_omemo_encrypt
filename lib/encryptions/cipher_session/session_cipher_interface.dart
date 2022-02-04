@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
+import 'package:lib_omemo_encrypt/keys/ecc/publickey.dart';
 import 'package:lib_omemo_encrypt/messages/omemo_message.dart';
 import 'package:lib_omemo_encrypt/rachet/chain.dart';
 import 'package:lib_omemo_encrypt/rachet/message_key.dart';
@@ -21,19 +21,19 @@ abstract class SessionCipherInterface {
       Uint8List data,
       Uint8List macKey,
       int messageVersion,
-      SimplePublicKey senderIdentityKey,
-      SimplePublicKey receiverIdentityKey,
+      ECDHPublicKey senderIdentityKey,
+      ECDHPublicKey receiverIdentityKey,
       Uint8List theirMac);
   Future<List<int>> getMac(Uint8List data, Uint8List macKey, int messageVersion,
-      SimplePublicKey senderIdentityKey, SimplePublicKey receiverIdentityKey);
+      ECDHPublicKey senderIdentityKey, ECDHPublicKey receiverIdentityKey);
   Future<Uint8List> createWhisperMessage(
       Session session, Uint8List paddedMessage);
   Future<Uint8List> createPreKeyWhisperMessage(
       Session session, Uint8List whisperMessage);
   Future<Tuple2<SessionState, Chain>> getOrCreateReceivingChain(
-      SessionState sessionState, SimplePublicKey theirEphemeralPublicKey);
+      SessionState sessionState, ECDHPublicKey theirEphemeralPublicKey);
   Future<MessageKey> getOrCreateMessageKeys(SessionState sessionState,
-      SimplePublicKey theirEphemeralPublicKey, Chain chain, int counter);
+      ECDHPublicKey theirEphemeralPublicKey, Chain chain, int counter);
   Future<Tuple2<SessionState, Chain>> clickMainRatchet(
-      SessionState sessionState, SimplePublicKey theirEphemeralPublicKey);
+      SessionState sessionState, ECDHPublicKey theirEphemeralPublicKey);
 }

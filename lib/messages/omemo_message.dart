@@ -1,10 +1,11 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:lib_omemo_encrypt/keys/ecc/publickey.dart';
 import 'package:lib_omemo_encrypt/lib_omemo_encrypt.dart';
 
 class OmemoMessage {
-  final SimplePublicKey ratchetKey;
+  final ECDHPublicKey ratchetKey;
   final int counter;
   final int previousCounter;
   final Uint8List ciphertext;
@@ -20,8 +21,8 @@ class KeyExchangeMessage {
   final String registrationId;
   final int preKeyId;
   final int signedPreKeyId;
-  final SimplePublicKey baseKey;
-  final SimplePublicKey identityKey;
+  final ECDHPublicKey baseKey;
+  final ECDHPublicKey identityKey;
   final Uint8List message;
 
   const KeyExchangeMessage(
