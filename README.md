@@ -162,6 +162,9 @@ You receive it as non-prekey whisper message.
     } else {
     }
 
+// Closing above main
+}
+
 ```
 
 ## Additional information
