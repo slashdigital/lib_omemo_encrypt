@@ -1,0 +1,7 @@
+syntax = "proto2";
+
+message SenderKeyMessage {
+  optional uint32 id         = 1;
+  optional uint32 iteration  = 2;
+  optional bytes  ciphertext = 3;
+}

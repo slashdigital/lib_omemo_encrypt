@@ -1,9 +1,18 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lib_omemo_encrypt/encryptions/cipher_session/group/group_session_cipher.dart';
+import 'package:lib_omemo_encrypt/encryptions/cipher_session/group/group_session_factory.dart';
 import 'package:lib_omemo_encrypt/encryptions/cipher_session/session_cipher.dart';
 import 'package:lib_omemo_encrypt/keys/bundle/receiving_prekey_bundle.dart';
 import 'package:lib_omemo_encrypt/keys/whisper/signed_prekey.dart';
 
 import 'package:lib_omemo_encrypt/lib_omemo_encrypt.dart';
+import 'package:lib_omemo_encrypt/messages/whisper_sender_distribution_message.dart';
+import 'package:lib_omemo_encrypt/sessions/session_group.dart';
+import 'package:lib_omemo_encrypt/sessions/session_user.dart';
+import 'package:lib_omemo_encrypt/storage/in-memory/group_memory_storage.dart';
 import 'package:lib_omemo_encrypt/storage/in-memory/memory_storage.dart';
 import 'package:lib_omemo_encrypt/utils/log.dart';
 import 'package:tuple/tuple.dart';
@@ -132,8 +141,9 @@ void main() {
     );
 
     // ### 4 Bob try to init the first cipher session
-
-    final bobSessionFactory = SessionFactory(store: bobStore);
+    const bobSessionUser = SessionUser(name: '62457689343', deviceId: '1');
+    final bobSessionFactory =
+        SessionFactory(store: bobStore, sessionUser: bobSessionUser);
     var bobSession = await bobSessionFactory
         .createSessionFromPreKeyBundle(bobReceivingBundle);
 
@@ -196,7 +206,9 @@ void main() {
       key: alicekeyPackage.signedPreKeyPair.keyPair,
     ));
 
-    final aliceSessionFactory = SessionFactory(store: aliceStore);
+    const aliceSessionUser = SessionUser(name: '62457689347', deviceId: '2');
+    final aliceSessionFactory =
+        SessionFactory(store: aliceStore, sessionUser: aliceSessionUser);
     Session _aliceSession = Session();
     personSessions[Person.alice] =
         Tuple3<Session, SessionCipher, SessionFactory>(
@@ -256,5 +268,105 @@ void main() {
       passedCaseCounter++;
     }
     expect(passedCaseCounter, conversationMessages.length);
+  });
+
+  test('Should work with group', () async {
+    const alice = SessionUser(name: '62344785747', deviceId: '2');
+    const tom = SessionUser(name: '62344785749', deviceId: '33');
+    const groupSender = SessionGroup(
+        groupId: 'private-group', groupName: 'Private group', sender: alice);
+    final aliceStore = GroupMemoryStorage();
+    final bobStore = GroupMemoryStorage();
+    final tomStore = GroupMemoryStorage();
+
+    final aliceSessionBuilder = GroupSessionFactory(aliceStore);
+    final bobSessionBuilder = GroupSessionFactory(bobStore);
+    final tomSessionBuilder = GroupSessionFactory(tomStore);
+
+    final aliceGroupCipher = GroupSessionCipher(aliceStore, groupSender);
+    final bobGroupCipher = GroupSessionCipher(bobStore, groupSender);
+    final tomSessionCipher = GroupSessionCipher(tomStore, groupSender);
+
+    // Alice want to send message, so she need to send a SenderKeyDistributionMessage to all members of the group first
+    final sentAliceDistributionMessage =
+        await aliceSessionBuilder.create(groupSender);
+
+    final receivedDistributionMessageFromAlice =
+        WhisperSenderDistributionMessage.fromBytes(
+            sentAliceDistributionMessage.serialized);
+    await bobSessionBuilder.storeKeyDistribution(
+        groupSender, receivedDistributionMessageFromAlice);
+    await tomSessionBuilder.storeKeyDistribution(
+        groupSender, receivedDistributionMessageFromAlice);
+
+    Log.instance.v(tag, 'Alice sent: \'Hello bob and Tom\'');
+    final ciphertextFromAlice = await aliceGroupCipher
+        .encrypt(Uint8List.fromList(utf8.encode('Hello bob and Tom')));
+    final plaintextFromAlice =
+        await bobGroupCipher.decrypt(ciphertextFromAlice);
+    final tomPlaintextFromAlice =
+        await tomSessionCipher.decrypt(ciphertextFromAlice);
+
+    // ignore: avoid_print
+    Log.instance
+        .v(tag, 'Bob get text from Alice: ' + utf8.decode(plaintextFromAlice));
+    // ignore: avoid_print
+    Log.instance.v(
+        tag, 'Tom get text from Alice: ' + utf8.decode(tomPlaintextFromAlice));
+
+    // Now Tom want want to send message, so she need to send a SenderKeyDistributionMessage to all members of the group first
+
+    Log.instance.v(tag,
+        '======== New message sender require to init new sender group ========');
+    const groupSenderTom = SessionGroup(
+        groupId: 'private-group', groupName: 'Private group', sender: tom);
+
+    final tomSessionCipherNext = GroupSessionCipher(tomStore, groupSenderTom);
+    final sentTomDistributionMessage =
+        await tomSessionBuilder.create(groupSenderTom);
+    Log.instance.v(tag, 'Tom sent: \'Hello alice and bob\'');
+    final ciphertextFromTom = await tomSessionCipherNext
+        .encrypt(Uint8List.fromList(utf8.encode('Hello alice and bob')));
+
+    final receivedDistributionMessageFromTom =
+        WhisperSenderDistributionMessage.fromBytes(
+            sentTomDistributionMessage.serialized);
+    await aliceSessionBuilder.storeKeyDistribution(
+        groupSenderTom, receivedDistributionMessageFromTom);
+    await bobSessionBuilder.storeKeyDistribution(
+        groupSenderTom, receivedDistributionMessageFromTom);
+
+    final aliceGroupCipherNext = GroupSessionCipher(aliceStore, groupSenderTom);
+    final bobGroupCipherNext = GroupSessionCipher(bobStore, groupSenderTom);
+    final alicePlaintextFromTom =
+        await aliceGroupCipherNext.decrypt(ciphertextFromTom);
+    final bobPlaintextFromTom =
+        await bobGroupCipherNext.decrypt(ciphertextFromTom);
+    Log.instance.v(
+        tag, 'Alice get text from Tom: ' + utf8.decode(alicePlaintextFromTom));
+    Log.instance
+        .v(tag, 'Bob get text from Tom: ' + utf8.decode(bobPlaintextFromTom));
+
+    Log.instance.v(tag, '======== Alice try to resend again ========');
+
+    Log.instance.v(tag, 'Alice sent: \'How are you both?\'');
+    final ciphertextFromAliceLast = await aliceGroupCipher
+        .encrypt(Uint8List.fromList(utf8.encode('Hello bob and Tom')));
+
+    final plaintextFromAliceLast =
+        await bobGroupCipher.decrypt(ciphertextFromAliceLast);
+    final tomPlaintextFromAliceLast =
+        await tomSessionCipher.decrypt(ciphertextFromAliceLast);
+
+    // ignore: avoid_print
+    Log.instance.v(
+        tag, 'Bob get text from Alice: ' + utf8.decode(plaintextFromAliceLast));
+    // ignore: avoid_print
+    Log.instance.v(tag,
+        'Tom get text from Alice: ' + utf8.decode(tomPlaintextFromAliceLast));
+
+    Log.instance.v(tag,
+        '======== In short, the sending and receiving are using different sender id ========');
+    expect(1, 1);
   });
 }

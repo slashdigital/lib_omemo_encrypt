@@ -20,6 +20,7 @@ import 'package:lib_omemo_encrypt/rachet/key_and_chain.dart';
 import 'package:lib_omemo_encrypt/rachet/rachet.dart';
 import 'package:lib_omemo_encrypt/sessions/session.dart';
 import 'package:lib_omemo_encrypt/sessions/session_state.dart';
+import 'package:lib_omemo_encrypt/sessions/session_user.dart';
 import 'package:lib_omemo_encrypt/storage/storage_interface.dart';
 import 'package:lib_omemo_encrypt/utils/log.dart';
 
@@ -42,8 +43,9 @@ class SessionFactory extends SessionFactoryInterface {
   final algorithmx25519 = X25519();
   final StorageInterface store;
   final Axololt axololt = Axololt();
+  final SessionUser sessionUser;
 
-  SessionFactory({required this.store});
+  SessionFactory({required this.store, required this.sessionUser});
 
   @override
   Future<Session> createSessionFromPreKeyBundle(
@@ -132,6 +134,7 @@ class SessionFactory extends SessionFactoryInterface {
         parameters.theirRatchetKey.key,
         sendingRatchetKeyPair);
     final SessionState sessionState = SessionState(
+        sessionUser: sessionUser,
         sessionVersion: parameters.sessionVersion,
         remoteIdentityKey: parameters.theirIdentityKey,
         localIdentityKey: await parameters.ourIdentityKeyPair.identityKey,
@@ -226,6 +229,7 @@ class SessionFactory extends SessionFactoryInterface {
         parameters.sessionVersion, agreements);
 
     final SessionState sessionState = SessionState(
+      sessionUser: sessionUser,
       sessionVersion: parameters.sessionVersion,
       remoteIdentityKey: parameters.theirIdentityKey,
       localIdentityKey: await parameters.ourIdentityKeyPair.identityKey,

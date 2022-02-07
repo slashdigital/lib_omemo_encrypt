@@ -8,11 +8,13 @@ import 'package:lib_omemo_encrypt/keys/whisper/pending_prekey.dart';
 import 'package:lib_omemo_encrypt/keys/whisper/prekey.dart';
 import 'package:lib_omemo_encrypt/rachet/chain.dart';
 import 'package:lib_omemo_encrypt/rachet/publickey_and_chain.dart';
+import 'package:lib_omemo_encrypt/sessions/session_user.dart';
 
 const maximumRetainedReceivedChainKeys = 20;
 Function eq = const ListEquality().equals;
 
 class SessionState {
+  final SessionUser sessionUser;
   final int sessionVersion;
   final IdentityKey remoteIdentityKey;
   final IdentityKey localIdentityKey;
@@ -31,6 +33,7 @@ class SessionState {
   PreKey? theirBaseKey;
 
   SessionState({
+    required this.sessionUser,
     required this.sessionVersion,
     required this.remoteIdentityKey,
     required this.localIdentityKey,
@@ -85,6 +88,7 @@ class SessionState {
 
   SessionState clone() {
     final clonedSessionState = SessionState(
+        sessionUser: sessionUser,
         sessionVersion: sessionVersion,
         remoteIdentityKey: remoteIdentityKey,
         localIdentityKey: localIdentityKey,

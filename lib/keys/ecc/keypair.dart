@@ -29,4 +29,11 @@ class ECDHKeyPair extends ECDHKey implements ECDHPublicKey {
 
   Future<Uint8List> get publicKeyBytes async =>
       Uint8List.fromList((await keyPair.extractPublicKey()).bytes);
+
+  static Future<ECDHKeyPair> fromBytes(
+      List<int> bytes, List<int> publicKeyBytes) async {
+    return ECDHKeyPair(SimpleKeyPairData(bytes,
+        type: KeyPairType.x25519,
+        publicKey: await ECDHPublicKey.fromBytes(publicKeyBytes).key));
+  }
 }

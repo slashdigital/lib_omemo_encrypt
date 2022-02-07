@@ -33,4 +33,9 @@ class Utils {
     final String message = utf8.decode(bytes);
     return message;
   }
+
+  static int intsToByteHighAndLow(int highValue, int lowValue) =>
+      ((highValue << 4) | lowValue) & 0xFF;
+
+  static int highBitsToInt(int value) => (value & 0xFF) >> 4;
 }
