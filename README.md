@@ -12,9 +12,19 @@ Library for Axololt Signal/Omemo-like encryption
 TODO: List prerequisites and provide or point to information on how to
 start using the package.
 
+TODO: improve group chat - create interface to fit the OMEMO end-to-end encryption:
+
+I think I have read again, to comply with OMEMO multi-device-end to end encryption, we need to follow signal guide on the group end to end encryption, https://signal.org/blog/private-groups/ 
+
+We need to handle it the same as 1-1, using different prekey for different group members and send N messages (per 1 session message) to N members using OMEMO xep protocol. I would have have to improve to manage session state to keep track of pre key and session for each user/group.
+
+But the above implementation is only from whatsapp white  paper  https://scontent.whatsapp.net/v/t39.8562-34/271639644_1080641699441889_2201546141855802968_n.pdf/WhatsApp_Security_Whitepaper.pdf?ccb=1-5&_nc_sid=2fbf2a&_nc_ohc=PLXsX2a9-J0AX84iQt4&_nc_ht=scontent.whatsapp.net&oh=01_AVwKBcZxxD_xh8v6mJj6V7rM0By0Fzl6ceVBZZfiYCOj5Q&oe=62060AFE page 10)
+
+My previous works:
+
 - Understand the group end to end encryption work: https://www.reddit.com/r/signal/comments/a2ogk2/this_is_how_signal_protocol_encrypts_group/
 - Whatsapp implementation white paper: https://scontent.whatsapp.net/v/t39.8562-34/271639644_1080641699441889_2201546141855802968_n.pdf/WhatsApp_Security_Whitepaper.pdf?ccb=1-5&_nc_sid=2fbf2a&_nc_ohc=PLXsX2a9-J0AX84iQt4&_nc_ht=scontent.whatsapp.net&oh=01_AVwKBcZxxD_xh8v6mJj6V7rM0By0Fzl6ceVBZZfiYCOj5Q&oe=62060AFE (Page 10)
-
+- Have not fully verified with implementation: but check the audit report: https://conversations.im/omemo/audit.pdf
 Summary points on the implementation:
 
 The first time a WhatsApp group member sends a message to a group:
