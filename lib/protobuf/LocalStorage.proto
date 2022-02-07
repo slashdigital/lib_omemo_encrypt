@@ -1,0 +1,17 @@
+syntax = "proto2";
+// Not used yet
+message SessionStorageMessage {
+  optional bytes localRegistrationId = 1;
+  optional bytes localIdentityKeyPair = 2;
+  optional bytes localPreKeyPairs = 3;
+  optional bytes localSignedPreKeyPairs = 4;
+  optional bytes session = 5;
+}
+
+message SessionStateStorageMessage {
+  optional bytes localRegistrationId = 1;
+  optional bytes localIdentityKeyPair = 2;
+  optional bytes localPreKeyPairs = 3;
+  optional bytes localSignedPreKeyPairs = 4;
+  optional bytes session = 5;
+}

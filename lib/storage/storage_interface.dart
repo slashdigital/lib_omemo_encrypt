@@ -1,4 +1,3 @@
-import 'package:lib_omemo_encrypt/keys/bundle/prekey_bundle.dart';
 import 'package:lib_omemo_encrypt/keys/whisper/identity_keypair.dart';
 import 'package:lib_omemo_encrypt/keys/whisper/prekey.dart';
 import 'package:lib_omemo_encrypt/keys/whisper/signed_prekey.dart';
@@ -12,11 +11,10 @@ abstract class StorageInterface {
   SignedPreKeyPair getLocalSignedPreKeyPair(int signedPreKeyId);
   PreKeyPair getLocalPreKeyPair(int preKeyId);
   void setLocalPreKeyPair(List<PreKeyPair> prekeys);
-  PreKeyBundle getRemotePreKeyBundle();
   bool isRemoteIdentityTrusted();
   bool hasSession();
   Session getSession();
-  Session putSession();
+  Session putSession(Session session);
 
   const StorageInterface();
 }

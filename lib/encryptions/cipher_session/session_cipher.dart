@@ -39,7 +39,7 @@ class SessionCipher extends SessionCipherInterface {
         receiverChain.rootKey, theirEphemeralPublicKey, ourNewEphemeralKeyPair);
 
     final newState = SessionState(
-      sessionUser: sessionState.sessionUser,
+      sessionMessagingIdentifier: sessionState.sessionMessagingIdentifier,
       localIdentityKey: sessionState.localIdentityKey,
       sessionVersion: sessionState.sessionVersion,
       remoteIdentityKey: sessionState.remoteIdentityKey,

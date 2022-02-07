@@ -19,7 +19,8 @@ class Session extends SessionInterface {
   addState(SessionState sessionState) {
     states.insert(0, sessionState);
     if (states.length > maximumSessionStatesPerIdentity) {
-      states.removeAt(0);
+      // states.removeAt(0); // remove last ?
+      states.removeLast();
     }
   }
 
