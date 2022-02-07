@@ -12,6 +12,39 @@ Library for Axololt Signal/Omemo-like encryption
 TODO: List prerequisites and provide or point to information on how to
 start using the package.
 
+- Understand the group end to end encryption work: https://www.reddit.com/r/signal/comments/a2ogk2/this_is_how_signal_protocol_encrypts_group/
+- Whatsapp implementation white paper: https://scontent.whatsapp.net/v/t39.8562-34/271639644_1080641699441889_2201546141855802968_n.pdf/WhatsApp_Security_Whitepaper.pdf?ccb=1-5&_nc_sid=2fbf2a&_nc_ohc=PLXsX2a9-J0AX84iQt4&_nc_ht=scontent.whatsapp.net&oh=01_AVwKBcZxxD_xh8v6mJj6V7rM0By0Fzl6ceVBZZfiYCOj5Q&oe=62060AFE (Page 10)
+
+Summary points on the implementation:
+
+The first time a WhatsApp group member sends a message to a group:
+
+1. The sender generates a random 32-byte Chain Key.
+2. The sender generates a random Curve25519 Signature Key
+key pair.
+3. The sender combines the 32-byte Chain Key and the public key from
+the Signature Key into a Sender Key message.
+4. The sender individually encrypts the Sender Key to each
+member of the group, using the pairwise messaging protocol explained
+previously.
+
+For all subsequent messages to the group:
+
+1. The sender derives a Message Key from the Chain Key, and updates
+the Chain Key.
+2. The sender encrypts the message using AES256 in CBC mode.
+3. The sender signs the ciphertext using the Signature Key.
+4. The sender transmits the single ciphertext message to the server, which
+does server-side fan-out to all group participants.
+
+The “hash ratchet” of the message sender’s Chain Key provides forward
+secrecy. Whenever a group member leaves, all group participants clear their
+Sender Key and start over.
+
+In Chat Device Consistency information is included when distributing a
+“Sender Key” and then excluded from the subsequent messages encrypted
+with the Sender Key
+
 ## Usage
 
 ### Implement storage for your application
