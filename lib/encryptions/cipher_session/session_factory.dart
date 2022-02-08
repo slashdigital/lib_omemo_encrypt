@@ -16,8 +16,8 @@ import 'package:lib_omemo_encrypt/keys/whisper/pending_prekey.dart';
 import 'package:lib_omemo_encrypt/keys/whisper/prekey.dart';
 import 'package:lib_omemo_encrypt/keys/whisper/signed_prekey.dart';
 import 'package:lib_omemo_encrypt/messages/message.dart';
-import 'package:lib_omemo_encrypt/rachet/key_and_chain.dart';
-import 'package:lib_omemo_encrypt/rachet/rachet.dart';
+import 'package:lib_omemo_encrypt/ratchet/key_and_chain.dart';
+import 'package:lib_omemo_encrypt/ratchet/ratchet.dart';
 import 'package:lib_omemo_encrypt/sessions/session.dart';
 import 'package:lib_omemo_encrypt/sessions/session_messaging.dart';
 import 'package:lib_omemo_encrypt/sessions/session_state.dart';
@@ -39,7 +39,7 @@ class SessionCipherState {
 }
 
 class SessionFactory extends SessionFactoryInterface {
-  final Rachet rachet = Rachet();
+  final Ratchet ratchet = Ratchet();
   final algorithmx25519 = X25519();
   final StorageInterface store;
   final Axololt axololt = Axololt();
@@ -127,9 +127,9 @@ class SessionFactory extends SessionFactoryInterface {
           parameters.ourBaseKeyPair, parameters.theirOneTimePreKey!.key);
       agreements.add(agreement4);
     }
-    final KeyAndChain derivedRootKeyChain = rachet.deriveInitialRootKeyAndChain(
-        parameters.sessionVersion, agreements);
-    final KeyAndChain sendingKeyChain = await rachet.deriveNextRootKeyAndChain(
+    final KeyAndChain derivedRootKeyChain = ratchet
+        .deriveInitialRootKeyAndChain(parameters.sessionVersion, agreements);
+    final KeyAndChain sendingKeyChain = await ratchet.deriveNextRootKeyAndChain(
         derivedRootKeyChain.rootKey,
         parameters.theirRatchetKey.key,
         sendingRatchetKeyPair);
@@ -225,8 +225,8 @@ class SessionFactory extends SessionFactoryInterface {
       agreements.add(agreement4);
     }
 
-    final KeyAndChain initialRootKeyChain = rachet.deriveInitialRootKeyAndChain(
-        parameters.sessionVersion, agreements);
+    final KeyAndChain initialRootKeyChain = ratchet
+        .deriveInitialRootKeyAndChain(parameters.sessionVersion, agreements);
 
     final SessionState sessionState = SessionState(
       sessionVersion: parameters.sessionVersion,

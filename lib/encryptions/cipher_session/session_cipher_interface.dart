@@ -2,8 +2,8 @@ import 'dart:typed_data';
 
 import 'package:lib_omemo_encrypt/keys/ecc/publickey.dart';
 import 'package:lib_omemo_encrypt/messages/omemo_message.dart';
-import 'package:lib_omemo_encrypt/rachet/chain.dart';
-import 'package:lib_omemo_encrypt/rachet/message_key.dart';
+import 'package:lib_omemo_encrypt/ratchet/chain.dart';
+import 'package:lib_omemo_encrypt/ratchet/message_key.dart';
 import 'package:lib_omemo_encrypt/sessions/session.dart';
 import 'package:lib_omemo_encrypt/sessions/session_state.dart';
 import 'package:tuple/tuple.dart';

@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:lib_omemo_encrypt/rachet/message_key.dart';
+import 'package:lib_omemo_encrypt/ratchet/message_key.dart';
 import 'package:lib_omemo_encrypt/protobuf/LocalStorage.pb.dart' as local_proto;
 import 'package:lib_omemo_encrypt/serialization/serialization_interface.dart';
 

@@ -7,10 +7,10 @@ import 'package:lib_omemo_encrypt/encryptions/axolotl/axolotl.dart';
 import 'package:lib_omemo_encrypt/kdf/hkdf/hkdfv3.dart';
 import 'package:lib_omemo_encrypt/keys/ecc/keypair.dart';
 import 'package:lib_omemo_encrypt/keys/ecc/publickey.dart';
-import 'package:lib_omemo_encrypt/rachet/chain.dart';
-import 'package:lib_omemo_encrypt/rachet/key_and_chain.dart';
-import 'package:lib_omemo_encrypt/rachet/message_key.dart';
-import 'package:lib_omemo_encrypt/rachet/rachet_interface.dart';
+import 'package:lib_omemo_encrypt/ratchet/chain.dart';
+import 'package:lib_omemo_encrypt/ratchet/key_and_chain.dart';
+import 'package:lib_omemo_encrypt/ratchet/message_key.dart';
+import 'package:lib_omemo_encrypt/ratchet/ratchet_interface.dart';
 import 'package:lib_omemo_encrypt/utils/array_buffer_utils.dart';
 
 const currentVersion = 3;
@@ -24,12 +24,12 @@ const dhKeyByteCount = 32;
 const rootKeyByteCount = 32;
 const chainKeyByteCount = 32;
 
-class Rachet extends RachetInterface {
+class Ratchet extends RatchetInterface {
   final algorithm = HKDFv3();
   final Axololt axololt = Axololt();
 
   @override
-  Future<Chain> clickSubRachet(Chain chain) async {
+  Future<Chain> clickSubRatchet(Chain chain) async {
     chain.index++;
     chain.key = await deriveNextChainKey(chain.key);
     return chain;

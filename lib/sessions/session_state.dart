@@ -6,8 +6,8 @@ import 'package:lib_omemo_encrypt/keys/ecc/publickey.dart';
 import 'package:lib_omemo_encrypt/keys/whisper/identity_key.dart';
 import 'package:lib_omemo_encrypt/keys/whisper/pending_prekey.dart';
 import 'package:lib_omemo_encrypt/keys/whisper/prekey.dart';
-import 'package:lib_omemo_encrypt/rachet/chain.dart';
-import 'package:lib_omemo_encrypt/rachet/publickey_and_chain.dart';
+import 'package:lib_omemo_encrypt/ratchet/chain.dart';
+import 'package:lib_omemo_encrypt/ratchet/publickey_and_chain.dart';
 
 const maximumRetainedReceivedChainKeys = 20;
 Function eq = const ListEquality().equals;
@@ -60,7 +60,7 @@ class SessionState {
   }
 
   addReceivingChain(ECDHPublicKey theirEphemeralPublicKey, Chain chain) async {
-    receivingChains.add(PublicKeyAndChain(
+    receivingChains.add(PublicKeyAndChain.create(
         ephemeralPublicKey: theirEphemeralPublicKey, chain: chain));
     // We don't keep an infinite number of chain keys, as this would compromise forward secrecy.
     if (receivingChains.length > maximumRetainedReceivedChainKeys) {

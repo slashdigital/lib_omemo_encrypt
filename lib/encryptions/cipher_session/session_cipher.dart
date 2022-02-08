@@ -9,9 +9,9 @@ import 'package:lib_omemo_encrypt/encryptions/cipher_session/session_cipher_inte
 import 'package:lib_omemo_encrypt/keys/ecc/publickey.dart';
 import 'package:lib_omemo_encrypt/messages/message.dart';
 import 'package:lib_omemo_encrypt/messages/omemo_message.dart';
-import 'package:lib_omemo_encrypt/rachet/chain.dart';
-import 'package:lib_omemo_encrypt/rachet/message_key.dart';
-import 'package:lib_omemo_encrypt/rachet/rachet.dart';
+import 'package:lib_omemo_encrypt/ratchet/chain.dart';
+import 'package:lib_omemo_encrypt/ratchet/message_key.dart';
+import 'package:lib_omemo_encrypt/ratchet/ratchet.dart';
 import 'package:lib_omemo_encrypt/sessions/session.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:lib_omemo_encrypt/sessions/session_messaging.dart';
@@ -23,7 +23,7 @@ const maximumMissedMessages = 2000;
 const tag = 'SessionCipher';
 
 class SessionCipher extends SessionCipherInterface {
-  final Rachet rachet = Rachet();
+  final Ratchet ratchet = Ratchet();
   final axololt = Axololt();
   final SessionMessaging sessionMessagingIdentity;
 
@@ -32,14 +32,14 @@ class SessionCipher extends SessionCipherInterface {
   @override
   Future<Tuple2<SessionState, Chain>> clickMainRatchet(
       SessionState sessionState, ECDHPublicKey theirEphemeralPublicKey) async {
-    final receiverChain = await rachet.deriveNextRootKeyAndChain(
+    final receiverChain = await ratchet.deriveNextRootKeyAndChain(
         sessionState.rootKey,
         theirEphemeralPublicKey,
         sessionState.senderRatchetKeyPair);
 
     final ourNewEphemeralKeyPair = await axololt.generateKeyPair();
 
-    final senderChain = await rachet.deriveNextRootKeyAndChain(
+    final senderChain = await ratchet.deriveNextRootKeyAndChain(
         receiverChain.rootKey, theirEphemeralPublicKey, ourNewEphemeralKeyPair);
 
     final newState = SessionState(
@@ -74,7 +74,7 @@ class SessionCipher extends SessionCipherInterface {
   @override
   Future<Uint8List> createWhisperMessage(
       Session session, List<int> paddedMessage) async {
-    final messageKeys = await rachet
+    final messageKeys = await ratchet
         .deriveMessageKeys(session.mostRecentState().sendingChain.key);
 
     // AES-CBC with 128 bit keys and HMAC-SHA256 authentication.
@@ -208,7 +208,7 @@ class SessionCipher extends SessionCipherInterface {
     final newSession = Session(sessionMessagingIdentity);
     newSession.clone(session.states);
     final whisperMessage = await createWhisperMessage(newSession, message);
-    await rachet.clickSubRachet(newSession.mostRecentState().sendingChain);
+    await ratchet.clickSubRatchet(newSession.mostRecentState().sendingChain);
     if (newSession.mostRecentState().pending != null) {
       return EncryptedMessage(
           isPreKeyWhisperMessage: true,
@@ -286,15 +286,15 @@ class SessionCipher extends SessionCipherInterface {
         // Some messages have not yet been delivered ("skipped") and so we need to catch the sub ratchet up
         // while keeping the message keys for when the messages are eventually delivered.
         chain.messageKeys
-            .insert(chain.index, await rachet.deriveMessageKeys(chain.key));
-        await rachet.clickSubRachet(chain);
+            .insert(chain.index, await ratchet.deriveMessageKeys(chain.key));
+        await ratchet.clickSubRatchet(chain);
       }
       // As we have received the message, we should click the sub ratchet forwards so we can't decrypt it again
 
       Log.instance.d(tag, 'Before - _chain index: ${chain.index}');
       Log.instance.d(tag, 'Before - _chain key: ${chain.key}');
-      var messageKeys = await rachet.deriveMessageKeys(chain.key);
-      await rachet.clickSubRachet(chain);
+      var messageKeys = await ratchet.deriveMessageKeys(chain.key);
+      await ratchet.clickSubRatchet(chain);
       // Set next chain
       sessionState.setReceivingChain(theirEphemeralPublicKey, chain);
       Log.instance.d(tag, 'After - _chain index: ${chain.index}');
