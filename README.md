@@ -20,6 +20,10 @@
 - [Test] Partially tested for different classes and some integration tests (mixed with Unit test coverage for now)
 - [Test] Dummy Conversation Person/Group for integrating test
 
+## Inspiration and Notable Mentions
+
+- Dart Signal Protocol: https://github.com/MixinNetwork/libsignal_protocol_dart
+- JS Axolotl: https://github.com/joebandenburg/libaxolotl-javascript
 
 ## Getting started
 
