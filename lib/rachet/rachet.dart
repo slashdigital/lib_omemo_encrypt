@@ -49,7 +49,7 @@ class Rachet extends RachetInterface {
         whisperText.asUint8List(), rootKeyByteCount + chainKeyByteCount);
     return KeyAndChain(
         rootKey: derivedSecret.sublist(0, rootKeyByteCount),
-        chain: Chain(derivedSecret.sublist(rootKeyByteCount)));
+        chain: Chain.create(derivedSecret.sublist(rootKeyByteCount)));
   }
 
   @override
@@ -74,7 +74,7 @@ class Rachet extends RachetInterface {
         cipherKeyByteCount, cipherKeyByteCount + macKeyByteCount);
     final ivBytes =
         keyMaterialBytes.sublist(cipherKeyByteCount + macKeyByteCount);
-    return MessageKey(
+    return MessageKey.create(
         cipherKey: ciperKeyBytes, macKey: macKeyBytes, iv: ivBytes);
   }
 
@@ -95,7 +95,7 @@ class Rachet extends RachetInterface {
 
     return KeyAndChain(
         rootKey: derivedSecretBytes.sublist(0, rootKeyByteCount),
-        chain: Chain(derivedSecretBytes.sublist(rootKeyByteCount)));
+        chain: Chain.create(derivedSecretBytes.sublist(rootKeyByteCount)));
   }
 
   @override
