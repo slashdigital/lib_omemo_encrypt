@@ -19,7 +19,7 @@ class Axololt extends AxololtInterface {
   final algorithmX25519 = X25519();
   @override
   Future<ECDHKeyPair> generateKeyPair() async {
-    return ECDHKeyPair(await algorithmX25519.newKeyPair());
+    return ECDHKeyPair.create(await algorithmX25519.newKeyPair());
   }
 
   @override

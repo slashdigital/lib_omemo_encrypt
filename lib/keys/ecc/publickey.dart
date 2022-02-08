@@ -9,17 +9,19 @@ import 'package:lib_omemo_encrypt/utils/utils.dart';
 
 class ECDHPublicKey extends ECDHKey
     implements Serializable<ECDHPublicKey, local_proto.LocalPublicKey> {
-  SimplePublicKey? _publicKey;
+  late SimplePublicKey _publicKey;
 
-  Future<SimplePublicKey> get key async => _publicKey!;
+  Future<SimplePublicKey> get key async => _publicKey;
 
-  ECDHPublicKey(this._publicKey);
+  ECDHPublicKey();
+  ECDHPublicKey.create(this._publicKey);
 
   @override
-  Future<Uint8List> get bytes async => Uint8List.fromList(_publicKey!.bytes);
+  Future<Uint8List> get bytes async => Uint8List.fromList(_publicKey.bytes);
 
   static ECDHPublicKey fromBytes(List<int> bytes) {
-    return ECDHPublicKey(SimplePublicKey(bytes, type: KeyPairType.x25519));
+    return ECDHPublicKey.create(
+        SimplePublicKey(bytes, type: KeyPairType.x25519));
   }
 
   @override
@@ -27,8 +29,8 @@ class ECDHPublicKey extends ECDHKey
     final localKeyPair = local_proto.LocalPublicKey.fromBuffer(bytes);
     final keyPairType = Utils.keyPairTypeFromName(
         Utils.convertBytesToString(localKeyPair.keyType));
-    _publicKey = SimplePublicKey(localKeyPair.publicKey, type: keyPairType);
-    return this;
+    return ECDHPublicKey.create(
+        SimplePublicKey(localKeyPair.publicKey, type: keyPairType));
   }
 
   @override
@@ -38,8 +40,8 @@ class ECDHPublicKey extends ECDHKey
 
   @override
   Future<local_proto.LocalPublicKey> serializeToProto() async {
-    final data = _publicKey!.bytes;
-    final keyType = Utils.convertStringToBytes(_publicKey!.type.name);
+    final data = _publicKey.bytes;
+    final keyType = Utils.convertStringToBytes(_publicKey.type.name);
     return local_proto.LocalPublicKey(keyType: keyType, publicKey: data);
   }
 }

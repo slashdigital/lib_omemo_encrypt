@@ -186,8 +186,8 @@ class SessionFactory extends SessionFactoryInterface {
 
     final bobParameters = BobCipherSessionParams(
         sessionVersion: preKeyWhisperMessage.version.current,
-        theirBaseKey: PreKey(
-            key: ECDHPublicKey.fromBytes(message.ek), preKeyId: message.pkId),
+        theirBaseKey:
+            PreKey.create(message.pkId, ECDHPublicKey.fromBytes(message.ek)),
         theirIdentityKey: IdentityKey(key: ECDHPublicKey.fromBytes(message.ik)),
         ourIdentityKeyPair: store.getLocalIdentityKeyPair(),
         ourSignedPreKeyPair: ourSignedPreKeyPair,
@@ -195,8 +195,8 @@ class SessionFactory extends SessionFactoryInterface {
         ourOneTimePreKeyPair: preKeyPair);
 
     final sessionState = await initializeBobSession(bobParameters);
-    sessionState.theirBaseKey = PreKey(
-        key: ECDHPublicKey.fromBytes(message.ek), preKeyId: message.pkId);
+    sessionState.theirBaseKey =
+        PreKey.create(message.pkId, ECDHPublicKey.fromBytes(message.ek));
     final clonedSession = Session(sessionMessagingIdentity);
     clonedSession.clone(session.states);
     clonedSession.addState(sessionState);
