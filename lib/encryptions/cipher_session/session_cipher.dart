@@ -42,7 +42,7 @@ class SessionCipher extends SessionCipherInterface {
     final senderChain = await ratchet.deriveNextRootKeyAndChain(
         receiverChain.rootKey, theirEphemeralPublicKey, ourNewEphemeralKeyPair);
 
-    final newState = SessionState(
+    final newState = SessionState.create(
       localIdentityKey: sessionState.localIdentityKey,
       sessionVersion: sessionState.sessionVersion,
       remoteIdentityKey: sessionState.remoteIdentityKey,
@@ -50,6 +50,7 @@ class SessionCipher extends SessionCipherInterface {
       senderRatchetKeyPair: ourNewEphemeralKeyPair,
       sendingChain: senderChain.chain,
       receivingChains: [],
+      localRegistrationId: sessionState.localRegistrationId,
     );
     newState.addReceivingChain(theirEphemeralPublicKey, receiverChain.chain);
     return Tuple2<SessionState, Chain>(newState, receiverChain.chain);
@@ -137,7 +138,7 @@ class SessionCipher extends SessionCipherInterface {
   @override
   Future<DecryptedMessage> decryptWhisperMessage(
       Session session, Uint8List omemoExchangeMessageBytes) async {
-    final newSession = Session(sessionMessagingIdentity);
+    final newSession = Session.create(sessionMessagingIdentity);
     newSession.clone(session.states);
     for (var sessionState in newSession.states) {
       final clonedSessionState = sessionState.clone();
@@ -205,7 +206,7 @@ class SessionCipher extends SessionCipherInterface {
   @override
   Future<EncryptedMessage> encryptMessage(
       Session session, List<int> message) async {
-    final newSession = Session(sessionMessagingIdentity);
+    final newSession = Session.create(sessionMessagingIdentity);
     newSession.clone(session.states);
     final whisperMessage = await createWhisperMessage(newSession, message);
     await ratchet.clickSubRatchet(newSession.mostRecentState().sendingChain);

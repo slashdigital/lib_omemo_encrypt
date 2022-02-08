@@ -148,18 +148,17 @@ final $typed_data.Uint8List localSessionMessagingDescriptor = $convert.base64Dec
 const LocalSessionState$json = const {
   '1': 'LocalSessionState',
   '2': const [
-    const {'1': 'sessionMessaging', '3': 1, '4': 1, '5': 11, '6': '.LocalSessionMessaging', '10': 'sessionMessaging'},
-    const {'1': 'sessionVersion', '3': 2, '4': 1, '5': 13, '10': 'sessionVersion'},
-    const {'1': 'remoteIdentityKey', '3': 3, '4': 1, '5': 11, '6': '.LocalPublicKey', '10': 'remoteIdentityKey'},
-    const {'1': 'localIdentityKey', '3': 4, '4': 1, '5': 11, '6': '.LocalPublicKey', '10': 'localIdentityKey'},
-    const {'1': 'localRegistrationId', '3': 5, '4': 1, '5': 9, '10': 'localRegistrationId'},
-    const {'1': 'rootKey', '3': 6, '4': 1, '5': 12, '10': 'rootKey'},
-    const {'1': 'sendingChain', '3': 7, '4': 1, '5': 11, '6': '.LocalChain', '10': 'sendingChain'},
-    const {'1': 'senderRatchetKeyPair', '3': 8, '4': 1, '5': 11, '6': '.LocalKeyPair', '10': 'senderRatchetKeyPair'},
-    const {'1': 'receivingChains', '3': 9, '4': 3, '5': 11, '6': '.LocalPublicKeyAndChain', '10': 'receivingChains'},
-    const {'1': 'previousCounter', '3': 10, '4': 1, '5': 13, '10': 'previousCounter'},
-    const {'1': 'pending', '3': 11, '4': 1, '5': 11, '6': '.LocalPendingPreKey', '9': 0, '10': 'pending', '17': true},
-    const {'1': 'theirBaseKey', '3': 12, '4': 1, '5': 11, '6': '.LocalPreKey', '9': 1, '10': 'theirBaseKey', '17': true},
+    const {'1': 'sessionVersion', '3': 1, '4': 1, '5': 13, '10': 'sessionVersion'},
+    const {'1': 'remoteIdentityKey', '3': 2, '4': 1, '5': 11, '6': '.LocalPublicKey', '10': 'remoteIdentityKey'},
+    const {'1': 'localIdentityKey', '3': 3, '4': 1, '5': 11, '6': '.LocalPublicKey', '10': 'localIdentityKey'},
+    const {'1': 'localRegistrationId', '3': 4, '4': 1, '5': 9, '10': 'localRegistrationId'},
+    const {'1': 'rootKey', '3': 5, '4': 1, '5': 12, '10': 'rootKey'},
+    const {'1': 'sendingChain', '3': 6, '4': 1, '5': 11, '6': '.LocalChain', '10': 'sendingChain'},
+    const {'1': 'senderRatchetKeyPair', '3': 7, '4': 1, '5': 11, '6': '.LocalKeyPair', '10': 'senderRatchetKeyPair'},
+    const {'1': 'receivingChains', '3': 8, '4': 3, '5': 11, '6': '.LocalPublicKeyAndChain', '10': 'receivingChains'},
+    const {'1': 'previousCounter', '3': 9, '4': 1, '5': 13, '10': 'previousCounter'},
+    const {'1': 'pending', '3': 10, '4': 1, '5': 11, '6': '.LocalPendingPreKey', '9': 0, '10': 'pending', '17': true},
+    const {'1': 'theirBaseKey', '3': 11, '4': 1, '5': 11, '6': '.LocalPreKey', '9': 1, '10': 'theirBaseKey', '17': true},
   ],
   '8': const [
     const {'1': '_pending'},
@@ -168,17 +167,18 @@ const LocalSessionState$json = const {
 };
 
 /// Descriptor for `LocalSessionState`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List localSessionStateDescriptor = $convert.base64Decode('ChFMb2NhbFNlc3Npb25TdGF0ZRJCChBzZXNzaW9uTWVzc2FnaW5nGAEgASgLMhYuTG9jYWxTZXNzaW9uTWVzc2FnaW5nUhBzZXNzaW9uTWVzc2FnaW5nEiYKDnNlc3Npb25WZXJzaW9uGAIgASgNUg5zZXNzaW9uVmVyc2lvbhI9ChFyZW1vdGVJZGVudGl0eUtleRgDIAEoCzIPLkxvY2FsUHVibGljS2V5UhFyZW1vdGVJZGVudGl0eUtleRI7ChBsb2NhbElkZW50aXR5S2V5GAQgASgLMg8uTG9jYWxQdWJsaWNLZXlSEGxvY2FsSWRlbnRpdHlLZXkSMAoTbG9jYWxSZWdpc3RyYXRpb25JZBgFIAEoCVITbG9jYWxSZWdpc3RyYXRpb25JZBIYCgdyb290S2V5GAYgASgMUgdyb290S2V5Ei8KDHNlbmRpbmdDaGFpbhgHIAEoCzILLkxvY2FsQ2hhaW5SDHNlbmRpbmdDaGFpbhJBChRzZW5kZXJSYXRjaGV0S2V5UGFpchgIIAEoCzINLkxvY2FsS2V5UGFpclIUc2VuZGVyUmF0Y2hldEtleVBhaXISQQoPcmVjZWl2aW5nQ2hhaW5zGAkgAygLMhcuTG9jYWxQdWJsaWNLZXlBbmRDaGFpblIPcmVjZWl2aW5nQ2hhaW5zEigKD3ByZXZpb3VzQ291bnRlchgKIAEoDVIPcHJldmlvdXNDb3VudGVyEjIKB3BlbmRpbmcYCyABKAsyEy5Mb2NhbFBlbmRpbmdQcmVLZXlIAFIHcGVuZGluZ4gBARI1Cgx0aGVpckJhc2VLZXkYDCABKAsyDC5Mb2NhbFByZUtleUgBUgx0aGVpckJhc2VLZXmIAQFCCgoIX3BlbmRpbmdCDwoNX3RoZWlyQmFzZUtleQ==');
+final $typed_data.Uint8List localSessionStateDescriptor = $convert.base64Decode('ChFMb2NhbFNlc3Npb25TdGF0ZRImCg5zZXNzaW9uVmVyc2lvbhgBIAEoDVIOc2Vzc2lvblZlcnNpb24SPQoRcmVtb3RlSWRlbnRpdHlLZXkYAiABKAsyDy5Mb2NhbFB1YmxpY0tleVIRcmVtb3RlSWRlbnRpdHlLZXkSOwoQbG9jYWxJZGVudGl0eUtleRgDIAEoCzIPLkxvY2FsUHVibGljS2V5UhBsb2NhbElkZW50aXR5S2V5EjAKE2xvY2FsUmVnaXN0cmF0aW9uSWQYBCABKAlSE2xvY2FsUmVnaXN0cmF0aW9uSWQSGAoHcm9vdEtleRgFIAEoDFIHcm9vdEtleRIvCgxzZW5kaW5nQ2hhaW4YBiABKAsyCy5Mb2NhbENoYWluUgxzZW5kaW5nQ2hhaW4SQQoUc2VuZGVyUmF0Y2hldEtleVBhaXIYByABKAsyDS5Mb2NhbEtleVBhaXJSFHNlbmRlclJhdGNoZXRLZXlQYWlyEkEKD3JlY2VpdmluZ0NoYWlucxgIIAMoCzIXLkxvY2FsUHVibGljS2V5QW5kQ2hhaW5SD3JlY2VpdmluZ0NoYWlucxIoCg9wcmV2aW91c0NvdW50ZXIYCSABKA1SD3ByZXZpb3VzQ291bnRlchIyCgdwZW5kaW5nGAogASgLMhMuTG9jYWxQZW5kaW5nUHJlS2V5SABSB3BlbmRpbmeIAQESNQoMdGhlaXJCYXNlS2V5GAsgASgLMgwuTG9jYWxQcmVLZXlIAVIMdGhlaXJCYXNlS2V5iAEBQgoKCF9wZW5kaW5nQg8KDV90aGVpckJhc2VLZXk=');
 @$core.Deprecated('Use localSessionDescriptor instead')
 const LocalSession$json = const {
   '1': 'LocalSession',
   '2': const [
-    const {'1': 'sessionStates', '3': 1, '4': 3, '5': 11, '6': '.LocalSessionState', '10': 'sessionStates'},
+    const {'1': 'sessionMessaging', '3': 1, '4': 1, '5': 11, '6': '.LocalSessionMessaging', '10': 'sessionMessaging'},
+    const {'1': 'sessionStates', '3': 2, '4': 3, '5': 11, '6': '.LocalSessionState', '10': 'sessionStates'},
   ],
 };
 
 /// Descriptor for `LocalSession`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List localSessionDescriptor = $convert.base64Decode('CgxMb2NhbFNlc3Npb24SOAoNc2Vzc2lvblN0YXRlcxgBIAMoCzISLkxvY2FsU2Vzc2lvblN0YXRlUg1zZXNzaW9uU3RhdGVz');
+final $typed_data.Uint8List localSessionDescriptor = $convert.base64Decode('CgxMb2NhbFNlc3Npb24SQgoQc2Vzc2lvbk1lc3NhZ2luZxgBIAEoCzIWLkxvY2FsU2Vzc2lvbk1lc3NhZ2luZ1IQc2Vzc2lvbk1lc3NhZ2luZxI4Cg1zZXNzaW9uU3RhdGVzGAIgAygLMhIuTG9jYWxTZXNzaW9uU3RhdGVSDXNlc3Npb25TdGF0ZXM=');
 @$core.Deprecated('Use localStorageDescriptor instead')
 const LocalStorage$json = const {
   '1': 'LocalStorage',

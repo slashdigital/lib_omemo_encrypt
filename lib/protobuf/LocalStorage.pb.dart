@@ -814,24 +814,22 @@ class LocalSessionMessaging extends $pb.GeneratedMessage {
 
 class LocalSessionState extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'LocalSessionState', createEmptyInstance: create)
-    ..aOM<LocalSessionMessaging>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'sessionMessaging', protoName: 'sessionMessaging', subBuilder: LocalSessionMessaging.create)
-    ..a<$core.int>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'sessionVersion', $pb.PbFieldType.OU3, protoName: 'sessionVersion')
-    ..aOM<LocalPublicKey>(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'remoteIdentityKey', protoName: 'remoteIdentityKey', subBuilder: LocalPublicKey.create)
-    ..aOM<LocalPublicKey>(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'localIdentityKey', protoName: 'localIdentityKey', subBuilder: LocalPublicKey.create)
-    ..aOS(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'localRegistrationId', protoName: 'localRegistrationId')
-    ..a<$core.List<$core.int>>(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'rootKey', $pb.PbFieldType.OY, protoName: 'rootKey')
-    ..aOM<LocalChain>(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'sendingChain', protoName: 'sendingChain', subBuilder: LocalChain.create)
-    ..aOM<LocalKeyPair>(8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'senderRatchetKeyPair', protoName: 'senderRatchetKeyPair', subBuilder: LocalKeyPair.create)
-    ..pc<LocalPublicKeyAndChain>(9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'receivingChains', $pb.PbFieldType.PM, protoName: 'receivingChains', subBuilder: LocalPublicKeyAndChain.create)
-    ..a<$core.int>(10, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'previousCounter', $pb.PbFieldType.OU3, protoName: 'previousCounter')
-    ..aOM<LocalPendingPreKey>(11, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'pending', subBuilder: LocalPendingPreKey.create)
-    ..aOM<LocalPreKey>(12, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'theirBaseKey', protoName: 'theirBaseKey', subBuilder: LocalPreKey.create)
+    ..a<$core.int>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'sessionVersion', $pb.PbFieldType.OU3, protoName: 'sessionVersion')
+    ..aOM<LocalPublicKey>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'remoteIdentityKey', protoName: 'remoteIdentityKey', subBuilder: LocalPublicKey.create)
+    ..aOM<LocalPublicKey>(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'localIdentityKey', protoName: 'localIdentityKey', subBuilder: LocalPublicKey.create)
+    ..aOS(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'localRegistrationId', protoName: 'localRegistrationId')
+    ..a<$core.List<$core.int>>(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'rootKey', $pb.PbFieldType.OY, protoName: 'rootKey')
+    ..aOM<LocalChain>(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'sendingChain', protoName: 'sendingChain', subBuilder: LocalChain.create)
+    ..aOM<LocalKeyPair>(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'senderRatchetKeyPair', protoName: 'senderRatchetKeyPair', subBuilder: LocalKeyPair.create)
+    ..pc<LocalPublicKeyAndChain>(8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'receivingChains', $pb.PbFieldType.PM, protoName: 'receivingChains', subBuilder: LocalPublicKeyAndChain.create)
+    ..a<$core.int>(9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'previousCounter', $pb.PbFieldType.OU3, protoName: 'previousCounter')
+    ..aOM<LocalPendingPreKey>(10, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'pending', subBuilder: LocalPendingPreKey.create)
+    ..aOM<LocalPreKey>(11, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'theirBaseKey', protoName: 'theirBaseKey', subBuilder: LocalPreKey.create)
     ..hasRequiredFields = false
   ;
 
   LocalSessionState._() : super();
   factory LocalSessionState({
-    LocalSessionMessaging? sessionMessaging,
     $core.int? sessionVersion,
     LocalPublicKey? remoteIdentityKey,
     LocalPublicKey? localIdentityKey,
@@ -845,9 +843,6 @@ class LocalSessionState extends $pb.GeneratedMessage {
     LocalPreKey? theirBaseKey,
   }) {
     final _result = create();
-    if (sessionMessaging != null) {
-      _result.sessionMessaging = sessionMessaging;
-    }
     if (sessionVersion != null) {
       _result.sessionVersion = sessionVersion;
     }
@@ -905,133 +900,127 @@ class LocalSessionState extends $pb.GeneratedMessage {
   static LocalSessionState? _defaultInstance;
 
   @$pb.TagNumber(1)
-  LocalSessionMessaging get sessionMessaging => $_getN(0);
+  $core.int get sessionVersion => $_getIZ(0);
   @$pb.TagNumber(1)
-  set sessionMessaging(LocalSessionMessaging v) { setField(1, v); }
+  set sessionVersion($core.int v) { $_setUnsignedInt32(0, v); }
   @$pb.TagNumber(1)
-  $core.bool hasSessionMessaging() => $_has(0);
+  $core.bool hasSessionVersion() => $_has(0);
   @$pb.TagNumber(1)
-  void clearSessionMessaging() => clearField(1);
-  @$pb.TagNumber(1)
-  LocalSessionMessaging ensureSessionMessaging() => $_ensure(0);
+  void clearSessionVersion() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.int get sessionVersion => $_getIZ(1);
+  LocalPublicKey get remoteIdentityKey => $_getN(1);
   @$pb.TagNumber(2)
-  set sessionVersion($core.int v) { $_setUnsignedInt32(1, v); }
+  set remoteIdentityKey(LocalPublicKey v) { setField(2, v); }
   @$pb.TagNumber(2)
-  $core.bool hasSessionVersion() => $_has(1);
+  $core.bool hasRemoteIdentityKey() => $_has(1);
   @$pb.TagNumber(2)
-  void clearSessionVersion() => clearField(2);
+  void clearRemoteIdentityKey() => clearField(2);
+  @$pb.TagNumber(2)
+  LocalPublicKey ensureRemoteIdentityKey() => $_ensure(1);
 
   @$pb.TagNumber(3)
-  LocalPublicKey get remoteIdentityKey => $_getN(2);
+  LocalPublicKey get localIdentityKey => $_getN(2);
   @$pb.TagNumber(3)
-  set remoteIdentityKey(LocalPublicKey v) { setField(3, v); }
+  set localIdentityKey(LocalPublicKey v) { setField(3, v); }
   @$pb.TagNumber(3)
-  $core.bool hasRemoteIdentityKey() => $_has(2);
+  $core.bool hasLocalIdentityKey() => $_has(2);
   @$pb.TagNumber(3)
-  void clearRemoteIdentityKey() => clearField(3);
+  void clearLocalIdentityKey() => clearField(3);
   @$pb.TagNumber(3)
-  LocalPublicKey ensureRemoteIdentityKey() => $_ensure(2);
+  LocalPublicKey ensureLocalIdentityKey() => $_ensure(2);
 
   @$pb.TagNumber(4)
-  LocalPublicKey get localIdentityKey => $_getN(3);
+  $core.String get localRegistrationId => $_getSZ(3);
   @$pb.TagNumber(4)
-  set localIdentityKey(LocalPublicKey v) { setField(4, v); }
+  set localRegistrationId($core.String v) { $_setString(3, v); }
   @$pb.TagNumber(4)
-  $core.bool hasLocalIdentityKey() => $_has(3);
+  $core.bool hasLocalRegistrationId() => $_has(3);
   @$pb.TagNumber(4)
-  void clearLocalIdentityKey() => clearField(4);
-  @$pb.TagNumber(4)
-  LocalPublicKey ensureLocalIdentityKey() => $_ensure(3);
+  void clearLocalRegistrationId() => clearField(4);
 
   @$pb.TagNumber(5)
-  $core.String get localRegistrationId => $_getSZ(4);
+  $core.List<$core.int> get rootKey => $_getN(4);
   @$pb.TagNumber(5)
-  set localRegistrationId($core.String v) { $_setString(4, v); }
+  set rootKey($core.List<$core.int> v) { $_setBytes(4, v); }
   @$pb.TagNumber(5)
-  $core.bool hasLocalRegistrationId() => $_has(4);
+  $core.bool hasRootKey() => $_has(4);
   @$pb.TagNumber(5)
-  void clearLocalRegistrationId() => clearField(5);
+  void clearRootKey() => clearField(5);
 
   @$pb.TagNumber(6)
-  $core.List<$core.int> get rootKey => $_getN(5);
+  LocalChain get sendingChain => $_getN(5);
   @$pb.TagNumber(6)
-  set rootKey($core.List<$core.int> v) { $_setBytes(5, v); }
+  set sendingChain(LocalChain v) { setField(6, v); }
   @$pb.TagNumber(6)
-  $core.bool hasRootKey() => $_has(5);
+  $core.bool hasSendingChain() => $_has(5);
   @$pb.TagNumber(6)
-  void clearRootKey() => clearField(6);
+  void clearSendingChain() => clearField(6);
+  @$pb.TagNumber(6)
+  LocalChain ensureSendingChain() => $_ensure(5);
 
   @$pb.TagNumber(7)
-  LocalChain get sendingChain => $_getN(6);
+  LocalKeyPair get senderRatchetKeyPair => $_getN(6);
   @$pb.TagNumber(7)
-  set sendingChain(LocalChain v) { setField(7, v); }
+  set senderRatchetKeyPair(LocalKeyPair v) { setField(7, v); }
   @$pb.TagNumber(7)
-  $core.bool hasSendingChain() => $_has(6);
+  $core.bool hasSenderRatchetKeyPair() => $_has(6);
   @$pb.TagNumber(7)
-  void clearSendingChain() => clearField(7);
+  void clearSenderRatchetKeyPair() => clearField(7);
   @$pb.TagNumber(7)
-  LocalChain ensureSendingChain() => $_ensure(6);
+  LocalKeyPair ensureSenderRatchetKeyPair() => $_ensure(6);
 
   @$pb.TagNumber(8)
-  LocalKeyPair get senderRatchetKeyPair => $_getN(7);
-  @$pb.TagNumber(8)
-  set senderRatchetKeyPair(LocalKeyPair v) { setField(8, v); }
-  @$pb.TagNumber(8)
-  $core.bool hasSenderRatchetKeyPair() => $_has(7);
-  @$pb.TagNumber(8)
-  void clearSenderRatchetKeyPair() => clearField(8);
-  @$pb.TagNumber(8)
-  LocalKeyPair ensureSenderRatchetKeyPair() => $_ensure(7);
+  $core.List<LocalPublicKeyAndChain> get receivingChains => $_getList(7);
 
   @$pb.TagNumber(9)
-  $core.List<LocalPublicKeyAndChain> get receivingChains => $_getList(8);
+  $core.int get previousCounter => $_getIZ(8);
+  @$pb.TagNumber(9)
+  set previousCounter($core.int v) { $_setUnsignedInt32(8, v); }
+  @$pb.TagNumber(9)
+  $core.bool hasPreviousCounter() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearPreviousCounter() => clearField(9);
 
   @$pb.TagNumber(10)
-  $core.int get previousCounter => $_getIZ(9);
+  LocalPendingPreKey get pending => $_getN(9);
   @$pb.TagNumber(10)
-  set previousCounter($core.int v) { $_setUnsignedInt32(9, v); }
+  set pending(LocalPendingPreKey v) { setField(10, v); }
   @$pb.TagNumber(10)
-  $core.bool hasPreviousCounter() => $_has(9);
+  $core.bool hasPending() => $_has(9);
   @$pb.TagNumber(10)
-  void clearPreviousCounter() => clearField(10);
+  void clearPending() => clearField(10);
+  @$pb.TagNumber(10)
+  LocalPendingPreKey ensurePending() => $_ensure(9);
 
   @$pb.TagNumber(11)
-  LocalPendingPreKey get pending => $_getN(10);
+  LocalPreKey get theirBaseKey => $_getN(10);
   @$pb.TagNumber(11)
-  set pending(LocalPendingPreKey v) { setField(11, v); }
+  set theirBaseKey(LocalPreKey v) { setField(11, v); }
   @$pb.TagNumber(11)
-  $core.bool hasPending() => $_has(10);
+  $core.bool hasTheirBaseKey() => $_has(10);
   @$pb.TagNumber(11)
-  void clearPending() => clearField(11);
+  void clearTheirBaseKey() => clearField(11);
   @$pb.TagNumber(11)
-  LocalPendingPreKey ensurePending() => $_ensure(10);
-
-  @$pb.TagNumber(12)
-  LocalPreKey get theirBaseKey => $_getN(11);
-  @$pb.TagNumber(12)
-  set theirBaseKey(LocalPreKey v) { setField(12, v); }
-  @$pb.TagNumber(12)
-  $core.bool hasTheirBaseKey() => $_has(11);
-  @$pb.TagNumber(12)
-  void clearTheirBaseKey() => clearField(12);
-  @$pb.TagNumber(12)
-  LocalPreKey ensureTheirBaseKey() => $_ensure(11);
+  LocalPreKey ensureTheirBaseKey() => $_ensure(10);
 }
 
 class LocalSession extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'LocalSession', createEmptyInstance: create)
-    ..pc<LocalSessionState>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'sessionStates', $pb.PbFieldType.PM, protoName: 'sessionStates', subBuilder: LocalSessionState.create)
+    ..aOM<LocalSessionMessaging>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'sessionMessaging', protoName: 'sessionMessaging', subBuilder: LocalSessionMessaging.create)
+    ..pc<LocalSessionState>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'sessionStates', $pb.PbFieldType.PM, protoName: 'sessionStates', subBuilder: LocalSessionState.create)
     ..hasRequiredFields = false
   ;
 
   LocalSession._() : super();
   factory LocalSession({
+    LocalSessionMessaging? sessionMessaging,
     $core.Iterable<LocalSessionState>? sessionStates,
   }) {
     final _result = create();
+    if (sessionMessaging != null) {
+      _result.sessionMessaging = sessionMessaging;
+    }
     if (sessionStates != null) {
       _result.sessionStates.addAll(sessionStates);
     }
@@ -1059,7 +1048,18 @@ class LocalSession extends $pb.GeneratedMessage {
   static LocalSession? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.List<LocalSessionState> get sessionStates => $_getList(0);
+  LocalSessionMessaging get sessionMessaging => $_getN(0);
+  @$pb.TagNumber(1)
+  set sessionMessaging(LocalSessionMessaging v) { setField(1, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasSessionMessaging() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearSessionMessaging() => clearField(1);
+  @$pb.TagNumber(1)
+  LocalSessionMessaging ensureSessionMessaging() => $_ensure(0);
+
+  @$pb.TagNumber(2)
+  $core.List<LocalSessionState> get sessionStates => $_getList(1);
 }
 
 class LocalStorage extends $pb.GeneratedMessage {

@@ -33,10 +33,10 @@ void main() {
           PublicKeyAndChain.create(ephemeralPublicKey: publicKey, chain: chain);
       final serialized = await publicKeyAndChain.serialize();
 
-      final parsedKeyPair = await PublicKeyAndChain().deserialize(serialized);
+      final parsedKeyChain = await PublicKeyAndChain().deserialize(serialized);
 
-      final serializedFromNewKey = await parsedKeyPair.serialize();
-      expect(serialized, serializedFromNewKey);
+      final serializedFromNewKeyChain = await parsedKeyChain.serialize();
+      expect(serialized, serializedFromNewKeyChain);
     });
   });
 }

@@ -13,10 +13,10 @@ void main() {
           iv: Uint8List.fromList(Utils.convertStringToBytes('iv')));
       final serialized = await messageKey.serialize();
 
-      final parsedKeyPair = await MessageKey().deserialize(serialized);
+      final parsedMsgkey = await MessageKey().deserialize(serialized);
 
-      final serializedFromNewKey = await parsedKeyPair.serialize();
-      expect(serialized, serializedFromNewKey);
+      final serializedFromNewMsgKey = await parsedMsgkey.serialize();
+      expect(serialized, serializedFromNewMsgKey);
     });
   });
 }

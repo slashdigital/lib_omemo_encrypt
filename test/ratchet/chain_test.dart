@@ -23,10 +23,10 @@ void main() {
           messageKeys: [messageKey, messageKeyNext]);
       final serialized = await chain.serialize();
 
-      final parsedKeyPair = await Chain().deserialize(serialized);
+      final parsedChain = await Chain().deserialize(serialized);
 
-      final serializedFromNewKey = await parsedKeyPair.serialize();
-      expect(serialized, serializedFromNewKey);
+      final serializedFromNewChain = await parsedChain.serialize();
+      expect(serialized, serializedFromNewChain);
     });
   });
 }

@@ -64,18 +64,17 @@ message LocalSessionMessaging {
 } 
 
 message LocalSessionState {
-  LocalSessionMessaging sessionMessaging = 1;
-  uint32 sessionVersion = 2;
-  LocalPublicKey remoteIdentityKey = 3;
-  LocalPublicKey localIdentityKey = 4;
-  string localRegistrationId = 5;
-  bytes rootKey = 6;
-  LocalChain sendingChain = 7;
-  LocalKeyPair senderRatchetKeyPair = 8;
-  repeated LocalPublicKeyAndChain receivingChains = 9;
-  uint32 previousCounter = 10;
-  optional LocalPendingPreKey pending = 11; 
-  optional LocalPreKey theirBaseKey = 12;
+  uint32 sessionVersion = 1;
+  LocalPublicKey remoteIdentityKey = 2;
+  LocalPublicKey localIdentityKey = 3;
+  string localRegistrationId = 4;
+  bytes rootKey = 5;
+  LocalChain sendingChain = 6;
+  LocalKeyPair senderRatchetKeyPair = 7;
+  repeated LocalPublicKeyAndChain receivingChains = 8;
+  uint32 previousCounter = 9;
+  optional LocalPendingPreKey pending = 10; 
+  optional LocalPreKey theirBaseKey = 11;
   // LocalSessionMessaging localRegistrationId = 1;
   // optional bytes localIdentityKeyPair = 2;
   // optional bytes localPreKeyPairs = 3;
@@ -84,7 +83,8 @@ message LocalSessionState {
 }
 
 message LocalSession {
-  repeated LocalSessionState sessionStates = 1;
+  LocalSessionMessaging sessionMessaging = 1;
+  repeated LocalSessionState sessionStates = 2;
 }
 
 message LocalStorage {

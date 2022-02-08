@@ -216,7 +216,7 @@ void main() {
         sessionChatType: SessionChatType.personalChat);
     final aliceSessionFactory = SessionFactory(
         store: aliceStore, sessionMessagingIdentity: aliceSessionIdentifier);
-    Session _aliceSession = Session(aliceSessionIdentifier);
+    Session _aliceSession = Session.create(aliceSessionIdentifier);
 
     final aliceCipherSession = SessionCipher(aliceSessionIdentifier);
     personSessions[Person.alice] =

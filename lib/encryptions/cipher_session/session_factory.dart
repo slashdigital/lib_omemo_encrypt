@@ -102,7 +102,7 @@ class SessionFactory extends SessionFactoryInterface {
         signedPreKeyId: receivingPreKeyBundle.signedPreKeyId);
     sessionState.localRegistrationId = await store.getLocalRegistrationId();
 
-    var session = Session(sessionMessagingIdentity);
+    var session = Session.create(sessionMessagingIdentity);
     session.addState(sessionState);
     return session;
   }
@@ -133,14 +133,15 @@ class SessionFactory extends SessionFactoryInterface {
         derivedRootKeyChain.rootKey,
         parameters.theirRatchetKey.key,
         sendingRatchetKeyPair);
-    final SessionState sessionState = SessionState(
+    final SessionState sessionState = SessionState.create(
         sessionVersion: parameters.sessionVersion,
         remoteIdentityKey: parameters.theirIdentityKey,
         localIdentityKey: await parameters.ourIdentityKeyPair.identityKey,
         rootKey: sendingKeyChain.rootKey,
         sendingChain: sendingKeyChain.chain,
         senderRatchetKeyPair: sendingRatchetKeyPair,
-        receivingChains: []);
+        receivingChains: [],
+        localRegistrationId: '');
     sessionState.addReceivingChain(
         parameters.theirRatchetKey.key, derivedRootKeyChain.chain);
     return sessionState;
@@ -198,7 +199,7 @@ class SessionFactory extends SessionFactoryInterface {
     final sessionState = await initializeBobSession(bobParameters);
     sessionState.theirBaseKey =
         PreKey.create(message.pkId, ECDHPublicKey.fromBytes(message.ek));
-    final clonedSession = Session(sessionMessagingIdentity);
+    final clonedSession = Session.create(sessionMessagingIdentity);
     clonedSession.clone(session.states);
     clonedSession.addState(sessionState);
     return SessionCipherState(
@@ -228,7 +229,7 @@ class SessionFactory extends SessionFactoryInterface {
     final KeyAndChain initialRootKeyChain = ratchet
         .deriveInitialRootKeyAndChain(parameters.sessionVersion, agreements);
 
-    final SessionState sessionState = SessionState(
+    final SessionState sessionState = SessionState.create(
       sessionVersion: parameters.sessionVersion,
       remoteIdentityKey: parameters.theirIdentityKey,
       localIdentityKey: await parameters.ourIdentityKeyPair.identityKey,
@@ -236,6 +237,7 @@ class SessionFactory extends SessionFactoryInterface {
       sendingChain: initialRootKeyChain.chain,
       senderRatchetKeyPair: parameters.ourRatchetKeyPair.keyPair,
       receivingChains: [],
+      localRegistrationId: '',
     );
     return sessionState;
   }
