@@ -11,12 +11,12 @@ Library for Axololt Signal/Omemo-like encryption
 
 ### How personal chat end-to-end encryption
 
-![Hiapp - sequence flow diagram-OMEMO](./docs/Hiapp - sequence flow diagram-OMEMO.jpg)
+![Hiapp - sequence flow diagram-OMEMO](./docs/OMEMO-personal.jpg)
 
 
 ### How group chat end-to-end encryption
 
-![Hiapp - sequence flow diagram-OMEMO - group](./docs/Hiapp - sequence flow diagram-OMEMO - group.jpg)
+![Hiapp - sequence flow diagram-OMEMO - group](./docs/OMEMO-group.jpg)
 
 TODO: List prerequisites and provide or point to information on how to
 start using the package.
