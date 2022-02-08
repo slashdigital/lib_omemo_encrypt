@@ -19,4 +19,4 @@ jobs:
           channel: 'stable'
       - run: flutter --version
       - run: flutter pub get
-      - run: flutter test --coverage --test-randomize-ordering-seed random
+      - run: flutter test
