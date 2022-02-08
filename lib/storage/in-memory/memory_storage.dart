@@ -2,7 +2,6 @@ import 'package:lib_omemo_encrypt/keys/whisper/identity_keypair.dart';
 import 'package:lib_omemo_encrypt/keys/whisper/prekey.dart';
 import 'package:lib_omemo_encrypt/keys/whisper/signed_prekey.dart';
 import 'package:lib_omemo_encrypt/sessions/session.dart';
-import 'package:lib_omemo_encrypt/keys/bundle/prekey_bundle.dart';
 import 'package:lib_omemo_encrypt/storage/storage_interface.dart';
 import 'package:tuple/tuple.dart';
 
@@ -11,7 +10,6 @@ class MemoryStorage extends StorageInterface {
   final IdentityKeyPair localIdentityKeyPair;
   late Iterable<Tuple2<int, PreKeyPair>> localPreKeyPairs;
   late List<Tuple2<int, SignedPreKeyPair>> localSignedPreKeyPairs = [];
-  late PreKeyBundle remotePreKeyBundle;
 
   MemoryStorage(
       {required this.localRegistrationId, required this.localIdentityKeyPair})
@@ -42,9 +40,6 @@ class MemoryStorage extends StorageInterface {
       _findExistingById(localSignedPreKeyPairs, signedPreKeyId)!.item2;
 
   @override
-  PreKeyBundle getRemotePreKeyBundle() => remotePreKeyBundle;
-
-  @override
   Session getSession() {
     throw UnimplementedError();
   }
@@ -65,7 +60,7 @@ class MemoryStorage extends StorageInterface {
   }
 
   @override
-  Session putSession() {
+  Session putSession(Session session) {
     throw UnimplementedError();
   }
 

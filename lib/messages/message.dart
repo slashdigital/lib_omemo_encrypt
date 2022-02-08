@@ -1,14 +1,11 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:lib_omemo_encrypt/messages/omemo_message.dart';
-import 'package:lib_omemo_encrypt/rachet/rachet.dart';
+import 'package:lib_omemo_encrypt/ratchet/ratchet.dart';
 import 'package:lib_omemo_encrypt/utils/array_buffer_utils.dart';
-import 'package:tuple/tuple.dart';
 import 'package:lib_omemo_encrypt/messages/message_interface.dart';
 import 'package:lib_omemo_encrypt/protobuf/OMEMOKeyExchange.pb.dart'
     as omemo_proto;
-import 'package:lib_omemo_encrypt/protobuf/OMEMOAuthenticatedMessage.pb.dart'
-    as omemo_auth_message_proto;
 import 'package:lib_omemo_encrypt/protobuf/OMEMOMessage.pb.dart'
     as omemo_message_proto;
 

@@ -16,11 +16,11 @@ import 'package:lib_omemo_encrypt/keys/whisper/pending_prekey.dart';
 import 'package:lib_omemo_encrypt/keys/whisper/prekey.dart';
 import 'package:lib_omemo_encrypt/keys/whisper/signed_prekey.dart';
 import 'package:lib_omemo_encrypt/messages/message.dart';
-import 'package:lib_omemo_encrypt/rachet/key_and_chain.dart';
-import 'package:lib_omemo_encrypt/rachet/rachet.dart';
+import 'package:lib_omemo_encrypt/ratchet/key_and_chain.dart';
+import 'package:lib_omemo_encrypt/ratchet/ratchet.dart';
 import 'package:lib_omemo_encrypt/sessions/session.dart';
+import 'package:lib_omemo_encrypt/sessions/session_messaging.dart';
 import 'package:lib_omemo_encrypt/sessions/session_state.dart';
-import 'package:lib_omemo_encrypt/sessions/session_user.dart';
 import 'package:lib_omemo_encrypt/storage/storage_interface.dart';
 import 'package:lib_omemo_encrypt/utils/log.dart';
 
@@ -39,13 +39,13 @@ class SessionCipherState {
 }
 
 class SessionFactory extends SessionFactoryInterface {
-  final Rachet rachet = Rachet();
+  final Ratchet ratchet = Ratchet();
   final algorithmx25519 = X25519();
   final StorageInterface store;
   final Axololt axololt = Axololt();
-  final SessionUser sessionUser;
+  final SessionMessaging sessionMessagingIdentity;
 
-  SessionFactory({required this.store, required this.sessionUser});
+  SessionFactory({required this.store, required this.sessionMessagingIdentity});
 
   @override
   Future<Session> createSessionFromPreKeyBundle(
@@ -68,7 +68,7 @@ class SessionFactory extends SessionFactoryInterface {
     final ourBaseKeyPair = await axololt.generateKeyPair();
     final SignedPreKey theirSignedPreKey = supportsV3
         ? receivingPreKeyBundle.signedPreKey!
-        : SignedPreKey(
+        : SignedPreKey.create(
             key: receivingPreKeyBundle.preKey.key,
             signedPreKeyId: receivingPreKeyBundle.preKey.preKeyId);
 
@@ -96,13 +96,13 @@ class SessionFactory extends SessionFactoryInterface {
         theirOneTimePreKey: supportsV3 ? receivingPreKeyBundle.preKey : null);
 
     final sessionState = await initializeAliceSession(aliceParameters);
-    sessionState.pending = PendingPreKey(
+    sessionState.pending = PendingPreKey.create(
         preKeyId: supportsV3 ? receivingPreKeyBundle.preKeyId : noPreKeyId,
         key: await ourBaseKeyPair.publicKey,
         signedPreKeyId: receivingPreKeyBundle.signedPreKeyId);
     sessionState.localRegistrationId = await store.getLocalRegistrationId();
 
-    var session = Session();
+    var session = Session.create(sessionMessagingIdentity);
     session.addState(sessionState);
     return session;
   }
@@ -127,21 +127,21 @@ class SessionFactory extends SessionFactoryInterface {
           parameters.ourBaseKeyPair, parameters.theirOneTimePreKey!.key);
       agreements.add(agreement4);
     }
-    final KeyAndChain derivedRootKeyChain = rachet.deriveInitialRootKeyAndChain(
-        parameters.sessionVersion, agreements);
-    final KeyAndChain sendingKeyChain = await rachet.deriveNextRootKeyAndChain(
+    final KeyAndChain derivedRootKeyChain = ratchet
+        .deriveInitialRootKeyAndChain(parameters.sessionVersion, agreements);
+    final KeyAndChain sendingKeyChain = await ratchet.deriveNextRootKeyAndChain(
         derivedRootKeyChain.rootKey,
         parameters.theirRatchetKey.key,
         sendingRatchetKeyPair);
-    final SessionState sessionState = SessionState(
-        sessionUser: sessionUser,
+    final SessionState sessionState = SessionState.create(
         sessionVersion: parameters.sessionVersion,
         remoteIdentityKey: parameters.theirIdentityKey,
         localIdentityKey: await parameters.ourIdentityKeyPair.identityKey,
         rootKey: sendingKeyChain.rootKey,
         sendingChain: sendingKeyChain.chain,
         senderRatchetKeyPair: sendingRatchetKeyPair,
-        receivingChains: []);
+        receivingChains: [],
+        localRegistrationId: '');
     sessionState.addReceivingChain(
         parameters.theirRatchetKey.key, derivedRootKeyChain.chain);
     return sessionState;
@@ -187,18 +187,19 @@ class SessionFactory extends SessionFactoryInterface {
 
     final bobParameters = BobCipherSessionParams(
         sessionVersion: preKeyWhisperMessage.version.current,
-        theirBaseKey: PreKey(
-            key: ECDHPublicKey.fromBytes(message.ek), preKeyId: message.pkId),
-        theirIdentityKey: IdentityKey(key: ECDHPublicKey.fromBytes(message.ik)),
+        theirBaseKey:
+            PreKey.create(message.pkId, ECDHPublicKey.fromBytes(message.ek)),
+        theirIdentityKey:
+            IdentityKey.create(key: ECDHPublicKey.fromBytes(message.ik)),
         ourIdentityKeyPair: store.getLocalIdentityKeyPair(),
         ourSignedPreKeyPair: ourSignedPreKeyPair,
         ourRatchetKeyPair: ourSignedPreKeyPair,
         ourOneTimePreKeyPair: preKeyPair);
 
     final sessionState = await initializeBobSession(bobParameters);
-    sessionState.theirBaseKey = PreKey(
-        key: ECDHPublicKey.fromBytes(message.ek), preKeyId: message.pkId);
-    final clonedSession = Session();
+    sessionState.theirBaseKey =
+        PreKey.create(message.pkId, ECDHPublicKey.fromBytes(message.ek));
+    final clonedSession = Session.create(sessionMessagingIdentity);
     clonedSession.clone(session.states);
     clonedSession.addState(sessionState);
     return SessionCipherState(
@@ -225,11 +226,10 @@ class SessionFactory extends SessionFactoryInterface {
       agreements.add(agreement4);
     }
 
-    final KeyAndChain initialRootKeyChain = rachet.deriveInitialRootKeyAndChain(
-        parameters.sessionVersion, agreements);
+    final KeyAndChain initialRootKeyChain = ratchet
+        .deriveInitialRootKeyAndChain(parameters.sessionVersion, agreements);
 
-    final SessionState sessionState = SessionState(
-      sessionUser: sessionUser,
+    final SessionState sessionState = SessionState.create(
       sessionVersion: parameters.sessionVersion,
       remoteIdentityKey: parameters.theirIdentityKey,
       localIdentityKey: await parameters.ourIdentityKeyPair.identityKey,
@@ -237,6 +237,7 @@ class SessionFactory extends SessionFactoryInterface {
       sendingChain: initialRootKeyChain.chain,
       senderRatchetKeyPair: parameters.ourRatchetKeyPair.keyPair,
       receivingChains: [],
+      localRegistrationId: '',
     );
     return sessionState;
   }

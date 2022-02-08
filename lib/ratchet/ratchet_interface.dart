@@ -2,9 +2,9 @@ import 'dart:typed_data';
 
 import 'package:lib_omemo_encrypt/keys/ecc/keypair.dart';
 import 'package:lib_omemo_encrypt/keys/ecc/publickey.dart';
-import 'package:lib_omemo_encrypt/rachet/chain.dart';
-import 'package:lib_omemo_encrypt/rachet/key_and_chain.dart';
-import 'package:lib_omemo_encrypt/rachet/message_key.dart';
+import 'package:lib_omemo_encrypt/ratchet/chain.dart';
+import 'package:lib_omemo_encrypt/ratchet/key_and_chain.dart';
+import 'package:lib_omemo_encrypt/ratchet/message_key.dart';
 
 const messageKeySeed = 0x01;
 const chainKeySeed = 0x02;
@@ -68,14 +68,14 @@ final discontinuityBytes = Uint8List.fromList([
   0xff
 ]).buffer;
 
-abstract class RachetInterface {
+abstract class RatchetInterface {
   KeyAndChain deriveInitialRootKeyAndChain(
       int sessionVersion, List<ByteBuffer> agreements);
   Future<KeyAndChain> deriveNextRootKeyAndChain(
       Uint8List rootKey,
       ECDHPublicKey theirEphemeralPublicKey,
       ECDHKeyPair ourEphemeralPrivateKey);
-  Future<Chain> clickSubRachet(Chain chain);
+  Future<Chain> clickSubRatchet(Chain chain);
   Future<MessageKey> deriveMessageKeys(Uint8List chainKey);
   Future<Uint8List> deriveMessageKey(Uint8List chainKey);
   Future<Uint8List> deriveNextChainKey(Uint8List chainKey);

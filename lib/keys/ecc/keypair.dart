@@ -3,24 +3,28 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:lib_omemo_encrypt/keys/ecc/key.dart';
 import 'package:lib_omemo_encrypt/keys/ecc/publickey.dart';
+import 'package:lib_omemo_encrypt/serialization/serialization_interface.dart';
+import 'package:lib_omemo_encrypt/protobuf/LocalStorage.pb.dart' as local_proto;
+import 'package:lib_omemo_encrypt/utils/utils.dart';
 
-class ECDHKeyPair extends ECDHKey implements ECDHPublicKey {
-  final SimpleKeyPair? _keyPair;
+class ECDHKeyPair extends ECDHKey
+    implements Serializable<ECDHKeyPair, local_proto.LocalKeyPair> {
+  late SimpleKeyPair _keyPair;
 
-  SimpleKeyPair get keyPair => _keyPair!;
+  SimpleKeyPair get keyPair => _keyPair;
 
-  bool get hasKeys => _keyPair != null;
+  bool get hasKeys => true;
 
-  ECDHKeyPair(this._keyPair);
+  ECDHKeyPair();
+  ECDHKeyPair.create(this._keyPair);
 
   Future<ECDHPublicKey> get publicKey async =>
-      ECDHPublicKey(await keyPair.extractPublicKey());
+      ECDHPublicKey.fromBytes((await keyPair.extractPublicKey()).bytes);
 
-  @override
   Future<SimplePublicKey> get key async => await keyPair.extractPublicKey();
 
   static ECDHKeyPair empty() {
-    return ECDHKeyPair(null);
+    return ECDHKeyPair();
   }
 
   @override
@@ -32,8 +36,35 @@ class ECDHKeyPair extends ECDHKey implements ECDHPublicKey {
 
   static Future<ECDHKeyPair> fromBytes(
       List<int> bytes, List<int> publicKeyBytes) async {
-    return ECDHKeyPair(SimpleKeyPairData(bytes,
+    return ECDHKeyPair.create(SimpleKeyPairData(bytes,
         type: KeyPairType.x25519,
         publicKey: await ECDHPublicKey.fromBytes(publicKeyBytes).key));
+  }
+
+  @override
+  Future<ECDHKeyPair> deserialize(Uint8List bytes) async {
+    final localKeyPair = local_proto.LocalKeyPair.fromBuffer(bytes);
+    final keyPairType = Utils.keyPairTypeFromName(
+        Utils.convertBytesToString(localKeyPair.keyType));
+    final publicKey =
+        SimplePublicKey(localKeyPair.publicKey, type: keyPairType);
+    return ECDHKeyPair.create(SimpleKeyPairData(localKeyPair.privateKey,
+        publicKey: publicKey, type: keyPairType));
+  }
+
+  @override
+  Future<Uint8List> serialize() async {
+    return (await serializeToProto()).writeToBuffer().buffer.asUint8List();
+  }
+
+  @override
+  Future<local_proto.LocalKeyPair> serializeToProto() async {
+    final data = await keyPair.extract();
+    final keyType = Utils.convertStringToBytes(data.type.name);
+    final publicKey = await data.extractPublicKey();
+    return local_proto.LocalKeyPair(
+        keyType: keyType,
+        privateKey: await data.extractPrivateKeyBytes(),
+        publicKey: publicKey.bytes);
   }
 }

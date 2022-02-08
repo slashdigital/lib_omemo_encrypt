@@ -11,6 +11,7 @@ import 'package:lib_omemo_encrypt/keys/whisper/signed_prekey.dart';
 import 'package:lib_omemo_encrypt/lib_omemo_encrypt.dart';
 import 'package:lib_omemo_encrypt/messages/whisper_sender_distribution_message.dart';
 import 'package:lib_omemo_encrypt/sessions/session_group.dart';
+import 'package:lib_omemo_encrypt/sessions/session_messaging.dart';
 import 'package:lib_omemo_encrypt/sessions/session_user.dart';
 import 'package:lib_omemo_encrypt/storage/in-memory/group_memory_storage.dart';
 import 'package:lib_omemo_encrypt/storage/in-memory/memory_storage.dart';
@@ -141,14 +142,17 @@ void main() {
     );
 
     // ### 4 Bob try to init the first cipher session
-    const bobSessionUser = SessionUser(name: '62457689343', deviceId: '1');
-    final bobSessionFactory =
-        SessionFactory(store: bobStore, sessionUser: bobSessionUser);
+    final bobSessionIdentifier = SessionMessaging.create(
+        sessionUser: const SessionUser(name: '62457689343', deviceId: '1'),
+        sessionGroup: null,
+        sessionChatType: SessionChatType.personalChat);
+
+    final bobSessionFactory = SessionFactory(
+        store: bobStore, sessionMessagingIdentity: bobSessionIdentifier);
     var bobSession = await bobSessionFactory
         .createSessionFromPreKeyBundle(bobReceivingBundle);
 
-    final bobCipherSession = SessionCipher();
-    final aliceCipherSession = SessionCipher();
+    final bobCipherSession = SessionCipher(bobSessionIdentifier);
     personSessions[Person.bob] = Tuple3<Session, SessionCipher, SessionFactory>(
         bobSession, bobCipherSession, bobSessionFactory);
     // ### 5. bob try to encrypt and the first whisper key
@@ -201,15 +205,20 @@ void main() {
     // ### 8 Alice try to init the first cipher session
     Log.instance.v(tag,
         '============================= ALICE start getting the prekey thru whisper message');
-    aliceStore.addLocalSignedPreKeyPair(SignedPreKeyPair(
+    aliceStore.addLocalSignedPreKeyPair(SignedPreKeyPair.create(
       signedPreKeyId: alicekeyPackage.signedPreKeyPairId,
       key: alicekeyPackage.signedPreKeyPair.keyPair,
     ));
 
-    const aliceSessionUser = SessionUser(name: '62457689347', deviceId: '2');
-    final aliceSessionFactory =
-        SessionFactory(store: aliceStore, sessionUser: aliceSessionUser);
-    Session _aliceSession = Session();
+    final aliceSessionIdentifier = SessionMessaging.create(
+        sessionUser: const SessionUser(name: '62457689347', deviceId: '2'),
+        sessionGroup: null,
+        sessionChatType: SessionChatType.personalChat);
+    final aliceSessionFactory = SessionFactory(
+        store: aliceStore, sessionMessagingIdentity: aliceSessionIdentifier);
+    Session _aliceSession = Session.create(aliceSessionIdentifier);
+
+    final aliceCipherSession = SessionCipher(aliceSessionIdentifier);
     personSessions[Person.alice] =
         Tuple3<Session, SessionCipher, SessionFactory>(
             _aliceSession, aliceCipherSession, aliceSessionFactory);

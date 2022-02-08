@@ -19,17 +19,17 @@ class Axololt extends AxololtInterface {
   final algorithmX25519 = X25519();
   @override
   Future<ECDHKeyPair> generateKeyPair() async {
-    return ECDHKeyPair(await algorithmX25519.newKeyPair());
+    return ECDHKeyPair.create(await algorithmX25519.newKeyPair());
   }
 
   @override
   Future<IdentityKeyPair> generateIdentityKeyPair() async {
-    return IdentityKeyPair(key: await generateKeyPair());
+    return IdentityKeyPair.create(key: await generateKeyPair());
   }
 
   @override
   Future<PreKeyPair> generateLastResortPreKey() async {
-    return PreKeyPair(preKeyId: 0xffffff, key: await generateKeyPair());
+    return PreKeyPair.create(preKeyId: 0xffffff, key: await generateKeyPair());
   }
 
   @override
@@ -37,7 +37,7 @@ class Axololt extends AxololtInterface {
     List<PreKeyPair> results = [];
     start--;
     for (var i = 0; i < count; i++) {
-      results.add(PreKeyPair(
+      results.add(PreKeyPair.create(
           preKeyId: ((start + i) % 0xfffffe) + 1,
           key: await generateKeyPair()));
     }
@@ -62,7 +62,7 @@ class Axololt extends AxololtInterface {
   /// Libraries can use an Ed25519 key pair as their internal IdentityKey. In this case, the IdentityKey can create EdDSA-compatible signatures directly, and has to be converted first to perform X25519.
   Future<SignedPreKeyPair> generateSignedPreKey(int signedPreKeyId) async {
     // Generate a keypair.
-    final keyPair = SignedPreKeyPair(
+    final keyPair = SignedPreKeyPair.create(
         key: await generateKeyPair(), signedPreKeyId: signedPreKeyId);
     return keyPair;
   }
