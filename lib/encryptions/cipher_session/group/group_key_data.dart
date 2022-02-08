@@ -6,8 +6,6 @@ import 'package:crypto/crypto.dart' as crypto;
 
 class SenderMessageKey {
   SenderMessageKey(this._iteration, this._seed) {
-    // final derivative = HKDFv3()
-    //     .deriveSecrets(seed, Uint8List.fromList('WhisperGroup'.codeUnits), 48);
     final derivative = HKDFv3()
         .deriveSecrets(seed, Uint8List.fromList('WhisperGroup'.codeUnits), 48);
     _iv = derivative.sublist(0, 16);

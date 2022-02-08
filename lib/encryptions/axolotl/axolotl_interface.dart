@@ -1,9 +1,4 @@
 import 'dart:typed_data';
-
-import 'package:cryptography/cryptography.dart';
-// import 'package:lib_omemo_encrypt/keys/prekey.dart';
-// import 'package:lib_omemo_encrypt/keys/signed_prekey.dart';
-// import 'package:lib_omemo_encrypt/keys/bundle/prekey_bundle.dart';
 import 'package:lib_omemo_encrypt/keys/bundle/prekey_package.dart';
 import 'package:lib_omemo_encrypt/keys/ecc/keypair.dart';
 import 'package:lib_omemo_encrypt/keys/ecc/publickey.dart';

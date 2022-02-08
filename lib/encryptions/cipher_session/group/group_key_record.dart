@@ -1,4 +1,3 @@
-import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:lib_omemo_encrypt/encryptions/cipher_session/group/group_key_data.dart';
@@ -8,15 +7,6 @@ import 'package:lib_omemo_encrypt/keys/ecc/publickey.dart';
 
 class SenderKeyRecord {
   SenderKeyRecord();
-
-  // SenderKeyRecord.fromSerialized(Uint8List serialized) {
-  //   final senderKeyRecordStructure =
-  //       SenderKeyRecordStructure.fromBuffer(serialized);
-  //   for (final structure in senderKeyRecordStructure.senderKeyStates) {
-  //     _senderKeyStates
-  //         .add(Entry(SenderKeyState.fromSenderKeyStateStructure(structure)));
-  //   }
-  // }
 
   SenderKeyRecord.copyWith(SenderKeyRecordStructure _senderKeyRecordStructure) {
     final senderKeyRecordStructure = SenderKeyRecordStructure();
@@ -30,8 +20,6 @@ class SenderKeyRecord {
 
   static const int _maxStates = 5;
 
-  // final LinkedList<Entry<SenderKeyState>> _senderKeyStates =
-  //     LinkedList<Entry<SenderKeyState>>();
   final List<Entry<SenderKeyState>> _senderKeyStates = [];
 
   bool get isEmpty => _senderKeyStates.isEmpty;
@@ -55,11 +43,6 @@ class SenderKeyRecord {
 
   Future<void> addSenderKeyState(int id, int iteration, Uint8List chainKey,
       ECDHPublicKey signatureKey) async {
-    // _senderKeyStates.addFirst(Entry(await SenderKeyState.fromPublicKey(
-    //     id, iteration, chainKey, signatureKey)));
-    // if (_senderKeyStates.length > _maxStates) {
-    //   _senderKeyStates.remove(_senderKeyStates.last);
-    // }
     _senderKeyStates.insert(
         0,
         Entry(await SenderKeyState.fromPublicKey(

@@ -8,6 +8,7 @@
 import 'dart:core' as $core;
 import 'dart:convert' as $convert;
 import 'dart:typed_data' as $typed_data;
+
 @$core.Deprecated('Use senderKeyMessageDescriptor instead')
 const SenderKeyMessage$json = const {
   '1': 'SenderKeyMessage',
@@ -19,4 +20,5 @@ const SenderKeyMessage$json = const {
 };
 
 /// Descriptor for `SenderKeyMessage`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List senderKeyMessageDescriptor = $convert.base64Decode('ChBTZW5kZXJLZXlNZXNzYWdlEg4KAmlkGAEgASgNUgJpZBIcCglpdGVyYXRpb24YAiABKA1SCWl0ZXJhdGlvbhIeCgpjaXBoZXJ0ZXh0GAMgASgMUgpjaXBoZXJ0ZXh0');
+final $typed_data.Uint8List senderKeyMessageDescriptor = $convert.base64Decode(
+    'ChBTZW5kZXJLZXlNZXNzYWdlEg4KAmlkGAEgASgNUgJpZBIcCglpdGVyYXRpb24YAiABKA1SCWl0ZXJhdGlvbhIeCgpjaXBoZXJ0ZXh0GAMgASgMUgpjaXBoZXJ0ZXh0');

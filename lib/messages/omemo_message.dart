@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
 import 'package:lib_omemo_encrypt/keys/ecc/publickey.dart';
 import 'package:lib_omemo_encrypt/lib_omemo_encrypt.dart';
 

@@ -1,4 +1,3 @@
-import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
@@ -8,15 +7,12 @@ import 'package:lib_omemo_encrypt/encryptions/cipher_session/group/group_session
 import 'package:lib_omemo_encrypt/messages/whisper_sender_message.dart';
 import 'package:lib_omemo_encrypt/sessions/session_group.dart';
 import 'package:lib_omemo_encrypt/storage/group_storage_interface.dart';
-import 'package:lib_omemo_encrypt/storage/in-memory/group_memory_storage.dart';
 
 class GroupSessionCipher extends GroupSessionCipherInterface {
   final GroupStorageInterface groupSessionStore;
   final SessionGroup groupSessionSender;
 
   GroupSessionCipher(this.groupSessionStore, this.groupSessionSender);
-
-// GroupCipher(this._senderKeyStore, this._senderKeyId);
 
   @override
   decrypt(Uint8List senderKeyMessageBytes) async {
@@ -43,9 +39,6 @@ class GroupSessionCipher extends GroupSessionCipherInterface {
             nonceLength: 16, macLength: 32),
         secretKey: SecretKey(senderKey.cipherKey));
     final _plainText = unpad(Uint8List.fromList(plainText));
-
-    // final plaintext = aesCbcDecrypt(
-    //     senderKey.cipherKey, senderKey.iv, senderKeyMessage.ciphertext);
 
     await groupSessionStore.storeSessionGroupKey(groupSessionSender, record);
     return _plainText;
