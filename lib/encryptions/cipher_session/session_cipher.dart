@@ -25,9 +25,9 @@ const tag = 'SessionCipher';
 class SessionCipher extends SessionCipherInterface {
   final Rachet rachet = Rachet();
   final axololt = Axololt();
-  final SessionMessaging sessionMessagingIdentifier;
+  final SessionMessaging sessionMessagingIdentity;
 
-  SessionCipher(this.sessionMessagingIdentifier);
+  SessionCipher(this.sessionMessagingIdentity);
 
   @override
   Future<Tuple2<SessionState, Chain>> clickMainRatchet(
@@ -137,7 +137,7 @@ class SessionCipher extends SessionCipherInterface {
   @override
   Future<DecryptedMessage> decryptWhisperMessage(
       Session session, Uint8List omemoExchangeMessageBytes) async {
-    final newSession = Session(sessionMessagingIdentifier);
+    final newSession = Session(sessionMessagingIdentity);
     newSession.clone(session.states);
     for (var sessionState in newSession.states) {
       final clonedSessionState = sessionState.clone();
@@ -205,7 +205,7 @@ class SessionCipher extends SessionCipherInterface {
   @override
   Future<EncryptedMessage> encryptMessage(
       Session session, List<int> message) async {
-    final newSession = Session(sessionMessagingIdentifier);
+    final newSession = Session(sessionMessagingIdentity);
     newSession.clone(session.states);
     final whisperMessage = await createWhisperMessage(newSession, message);
     await rachet.clickSubRachet(newSession.mostRecentState().sendingChain);

@@ -148,7 +148,7 @@ void main() {
         sessionChatType: SessionChatType.personalChat);
 
     final bobSessionFactory = SessionFactory(
-        store: bobStore, sessionMessagingIdentifier: bobSessionIdentifier);
+        store: bobStore, sessionMessagingIdentity: bobSessionIdentifier);
     var bobSession = await bobSessionFactory
         .createSessionFromPreKeyBundle(bobReceivingBundle);
 
@@ -215,7 +215,7 @@ void main() {
         sessionGroup: null,
         sessionChatType: SessionChatType.personalChat);
     final aliceSessionFactory = SessionFactory(
-        store: aliceStore, sessionMessagingIdentifier: aliceSessionIdentifier);
+        store: aliceStore, sessionMessagingIdentity: aliceSessionIdentifier);
     Session _aliceSession = Session(aliceSessionIdentifier);
 
     final aliceCipherSession = SessionCipher(aliceSessionIdentifier);

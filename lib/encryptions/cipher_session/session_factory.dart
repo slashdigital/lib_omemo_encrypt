@@ -43,10 +43,9 @@ class SessionFactory extends SessionFactoryInterface {
   final algorithmx25519 = X25519();
   final StorageInterface store;
   final Axololt axololt = Axololt();
-  final SessionMessaging sessionMessagingIdentifier;
+  final SessionMessaging sessionMessagingIdentity;
 
-  SessionFactory(
-      {required this.store, required this.sessionMessagingIdentifier});
+  SessionFactory({required this.store, required this.sessionMessagingIdentity});
 
   @override
   Future<Session> createSessionFromPreKeyBundle(
@@ -103,7 +102,7 @@ class SessionFactory extends SessionFactoryInterface {
         signedPreKeyId: receivingPreKeyBundle.signedPreKeyId);
     sessionState.localRegistrationId = await store.getLocalRegistrationId();
 
-    var session = Session(sessionMessagingIdentifier);
+    var session = Session(sessionMessagingIdentity);
     session.addState(sessionState);
     return session;
   }
@@ -198,7 +197,7 @@ class SessionFactory extends SessionFactoryInterface {
     final sessionState = await initializeBobSession(bobParameters);
     sessionState.theirBaseKey = PreKey(
         key: ECDHPublicKey.fromBytes(message.ek), preKeyId: message.pkId);
-    final clonedSession = Session(sessionMessagingIdentifier);
+    final clonedSession = Session(sessionMessagingIdentity);
     clonedSession.clone(session.states);
     clonedSession.addState(sessionState);
     return SessionCipherState(

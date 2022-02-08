@@ -8,10 +8,10 @@ import 'package:lib_omemo_encrypt/sessions/session_state.dart';
 /// - states: list of state per identity
 /// You should implemen to store one by one different identity in your local storage
 class Session extends SessionInterface {
-  final SessionMessaging sessionMessagingIdentifier;
+  final SessionMessaging sessionMessagingIdentity;
   final List<SessionState> states = [];
 
-  Session(this.sessionMessagingIdentifier);
+  Session(this.sessionMessagingIdentity);
 
   clone(List<SessionState> _session) {
     for (var element in _session) {
