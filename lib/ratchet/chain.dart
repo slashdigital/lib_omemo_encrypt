@@ -10,7 +10,11 @@ class Chain implements Serializable<Chain, local_proto.LocalChain> {
   List<MessageKey?> messageKeys = [];
 
   Chain();
-  Chain.create(this.key, {this.index = 0, this.messageKeys = const []});
+  Chain.create(this.key, {this.index = 0, List<MessageKey?>? messageKeysList}) {
+    if (messageKeysList != null) {
+      messageKeys = messageKeysList;
+    }
+  }
 
   Chain copyWith({int? index, Uint8List? key, List<MessageKey?>? messageKeys}) {
     final _chain = Chain.create(this.key, index: index ?? this.index);
@@ -27,7 +31,7 @@ class Chain implements Serializable<Chain, local_proto.LocalChain> {
           .add(await MessageKey().deserialize(messageKey.writeToBuffer()));
     }
     return Chain.create(Uint8List.fromList(proto.key),
-        index: proto.index, messageKeys: parsedMappedList);
+        index: proto.index, messageKeysList: parsedMappedList);
   }
 
   @override

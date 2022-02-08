@@ -14,10 +14,15 @@ import 'package:lib_omemo_encrypt/protobuf/LocalStorage.pb.dart' as local_proto;
 class Session extends SessionInterface
     implements Serializable<Session, local_proto.LocalSession> {
   late SessionMessaging sessionMessagingIdentity;
-  late List<SessionState> states = [];
+  List<SessionState> states = [];
 
   Session();
-  Session.create(this.sessionMessagingIdentity, {this.states = const []});
+  Session.create(this.sessionMessagingIdentity,
+      {List<SessionState>? sessionStates}) {
+    if (sessionStates != null) {
+      states = sessionStates;
+    }
+  }
 
   clone(List<SessionState> _session) {
     for (var element in _session) {
@@ -56,7 +61,7 @@ class Session extends SessionInterface
     return Session.create(
         await SessionMessaging()
             .deserialize(proto.sessionMessaging.writeToBuffer()),
-        states: mappedSessionState);
+        sessionStates: mappedSessionState);
   }
 
   @override

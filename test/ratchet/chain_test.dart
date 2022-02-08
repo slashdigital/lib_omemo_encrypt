@@ -20,7 +20,7 @@ void main() {
       final chain = Chain.create(
           Uint8List.fromList(Utils.convertStringToBytes('chainKeys')),
           index: 0,
-          messageKeys: [messageKey, messageKeyNext]);
+          messageKeysList: [messageKey, messageKeyNext]);
       final serialized = await chain.serialize();
 
       final parsedChain = await Chain().deserialize(serialized);

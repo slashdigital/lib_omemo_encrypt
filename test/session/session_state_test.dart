@@ -34,11 +34,11 @@ void main() {
         final chain = Chain.create(
             Uint8List.fromList(Utils.convertStringToBytes('chainKeys_$i')),
             index: 0,
-            messageKeys: [messageKey, messageKeyNext]);
+            messageKeysList: [messageKey, messageKeyNext]);
         final recievingChain = Chain.create(
             Uint8List.fromList(Utils.convertStringToBytes('chainKeys_$i')),
             index: 0,
-            messageKeys: [messageKey, messageKeyNext]);
+            messageKeysList: [messageKey, messageKeyNext]);
 
         final keyPair = ECDHKeyPair.create(await algorithm.newKeyPair());
         final publicKey = await keyPair.publicKey;
@@ -72,7 +72,7 @@ void main() {
               sessionUser: const SessionUser(deviceId: '1', name: 'alice'),
               sessionGroup: null,
               sessionChatType: SessionChatType.personalChat),
-          states: states);
+          sessionStates: states);
 
       final serialized = await session.serialize();
 

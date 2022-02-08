@@ -26,7 +26,7 @@ class SessionState
   late Chain sendingChain;
   late ECDHKeyPair senderRatchetKeyPair;
   // Keep a small list of chain keys to allow for out of order message delivery.
-  late List<PublicKeyAndChain> receivingChains;
+  List<PublicKeyAndChain> receivingChains = [];
   // In clone
   // TODO: define when this is in used?
   int previousCounter = 0;

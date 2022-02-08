@@ -26,11 +26,11 @@ void main() {
       final chain = Chain.create(
           Uint8List.fromList(Utils.convertStringToBytes('chainKeys')),
           index: 0,
-          messageKeys: [messageKey, messageKeyNext]);
+          messageKeysList: [messageKey, messageKeyNext]);
       final recievingChain = Chain.create(
           Uint8List.fromList(Utils.convertStringToBytes('chainKeys')),
           index: 0,
-          messageKeys: [messageKey, messageKeyNext]);
+          messageKeysList: [messageKey, messageKeyNext]);
 
       final keyPair = ECDHKeyPair.create(await algorithm.newKeyPair());
       final publicKey = await keyPair.publicKey;
