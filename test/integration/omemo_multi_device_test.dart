@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'chat_user.dart';
+import 'package:lib_omemo_encrypt/conversation/dummy/chat_user.dart';
 
 const preKeys = 20;
 enum Person {
@@ -10,8 +10,6 @@ enum Person {
 }
 
 void main() {
-  const tag = 'Axololt';
-
   late ChatUser aliceApp;
   late ChatUser aliceAppSecondDevice;
 
