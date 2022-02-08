@@ -68,7 +68,7 @@ class SessionFactory extends SessionFactoryInterface {
     final ourBaseKeyPair = await axololt.generateKeyPair();
     final SignedPreKey theirSignedPreKey = supportsV3
         ? receivingPreKeyBundle.signedPreKey!
-        : SignedPreKey(
+        : SignedPreKey.create(
             key: receivingPreKeyBundle.preKey.key,
             signedPreKeyId: receivingPreKeyBundle.preKey.preKeyId);
 
@@ -96,7 +96,7 @@ class SessionFactory extends SessionFactoryInterface {
         theirOneTimePreKey: supportsV3 ? receivingPreKeyBundle.preKey : null);
 
     final sessionState = await initializeAliceSession(aliceParameters);
-    sessionState.pending = PendingPreKey(
+    sessionState.pending = PendingPreKey.create(
         preKeyId: supportsV3 ? receivingPreKeyBundle.preKeyId : noPreKeyId,
         key: await ourBaseKeyPair.publicKey,
         signedPreKeyId: receivingPreKeyBundle.signedPreKeyId);
@@ -188,7 +188,8 @@ class SessionFactory extends SessionFactoryInterface {
         sessionVersion: preKeyWhisperMessage.version.current,
         theirBaseKey:
             PreKey.create(message.pkId, ECDHPublicKey.fromBytes(message.ek)),
-        theirIdentityKey: IdentityKey(key: ECDHPublicKey.fromBytes(message.ik)),
+        theirIdentityKey:
+            IdentityKey.create(key: ECDHPublicKey.fromBytes(message.ik)),
         ourIdentityKeyPair: store.getLocalIdentityKeyPair(),
         ourSignedPreKeyPair: ourSignedPreKeyPair,
         ourRatchetKeyPair: ourSignedPreKeyPair,

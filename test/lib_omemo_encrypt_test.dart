@@ -205,7 +205,7 @@ void main() {
     // ### 8 Alice try to init the first cipher session
     Log.instance.v(tag,
         '============================= ALICE start getting the prekey thru whisper message');
-    aliceStore.addLocalSignedPreKeyPair(SignedPreKeyPair(
+    aliceStore.addLocalSignedPreKeyPair(SignedPreKeyPair.create(
       signedPreKeyId: alicekeyPackage.signedPreKeyPairId,
       key: alicekeyPackage.signedPreKeyPair.keyPair,
     ));
