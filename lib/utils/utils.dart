@@ -4,6 +4,8 @@ import 'dart:core';
 
 import 'dart:typed_data';
 
+import 'package:cryptography/cryptography.dart';
+
 class Utils {
   static final Random _random = Random.secure();
 
@@ -38,4 +40,14 @@ class Utils {
       ((highValue << 4) | lowValue) & 0xFF;
 
   static int highBitsToInt(int value) => (value & 0xFF) >> 4;
+
+  static KeyPairType keyPairTypeFromName(final String keyPairName) {
+    if (keyPairName == KeyPairType.x25519.name) {
+      return KeyPairType.x25519;
+    } else if (keyPairName == KeyPairType.ed25519.name) {
+      return KeyPairType.ed25519;
+    } else {
+      throw Exception('Unsupported keypair for this library');
+    }
+  }
 }

@@ -3,9 +3,12 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:lib_omemo_encrypt/keys/ecc/key.dart';
 import 'package:lib_omemo_encrypt/keys/ecc/publickey.dart';
+import 'package:lib_omemo_encrypt/serialization/serialization_interface.dart';
+import 'package:lib_omemo_encrypt/protobuf/LocalStorage.pb.dart' as local_proto;
+import 'package:lib_omemo_encrypt/utils/utils.dart';
 
-class ECDHKeyPair extends ECDHKey implements ECDHPublicKey {
-  final SimpleKeyPair? _keyPair;
+class ECDHKeyPair extends ECDHKey implements Serializable<ECDHKeyPair> {
+  SimpleKeyPair? _keyPair;
 
   SimpleKeyPair get keyPair => _keyPair!;
 
@@ -16,7 +19,6 @@ class ECDHKeyPair extends ECDHKey implements ECDHPublicKey {
   Future<ECDHPublicKey> get publicKey async =>
       ECDHPublicKey(await keyPair.extractPublicKey());
 
-  @override
   Future<SimplePublicKey> get key async => await keyPair.extractPublicKey();
 
   static ECDHKeyPair empty() {
@@ -35,5 +37,31 @@ class ECDHKeyPair extends ECDHKey implements ECDHPublicKey {
     return ECDHKeyPair(SimpleKeyPairData(bytes,
         type: KeyPairType.x25519,
         publicKey: await ECDHPublicKey.fromBytes(publicKeyBytes).key));
+  }
+
+  @override
+  Future<ECDHKeyPair> deserialize(Uint8List bytes) async {
+    final localKeyPair = local_proto.LocalKeyPair.fromBuffer(bytes);
+    final keyPairType = Utils.keyPairTypeFromName(
+        Utils.convertBytesToString(localKeyPair.keyType));
+    final publicKey =
+        SimplePublicKey(localKeyPair.publicKey, type: keyPairType);
+    _keyPair = SimpleKeyPairData(localKeyPair.privateKey,
+        publicKey: publicKey, type: keyPairType);
+    return this;
+  }
+
+  @override
+  Future<Uint8List> serialize() async {
+    final data = await keyPair.extract();
+    final keyType = Utils.convertStringToBytes(data.type.name);
+    final publicKey = await data.extractPublicKey();
+    return local_proto.LocalKeyPair(
+            keyType: keyType,
+            privateKey: await data.extractPrivateKeyBytes(),
+            publicKey: publicKey.bytes)
+        .writeToBuffer()
+        .buffer
+        .asUint8List();
   }
 }
