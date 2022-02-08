@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:lib_omemo_encrypt/encryptions/axolotl/axolotl.dart';
 import 'package:lib_omemo_encrypt/encryptions/cipher_session/session_cipher.dart';
 import 'package:lib_omemo_encrypt/encryptions/cipher_session/session_factory.dart';
@@ -124,8 +125,13 @@ class ChatUser {
     final sessionGroup = friendSessions[friendIdentifier]!;
     final encryptedMsg = await sessionGroup.item2.encryptMessage(
         sessionGroup.item1, Utils.convertStringToBytes(message));
-    Log.instance
-        .d(tag, '(${self.name} | Device: ${self.deviceId}): Send - $message');
+
+    final logMessage =
+        '(${self.name} | Device: ${self.deviceId}): Send - $message';
+    Log.instance.d(tag, logMessage);
+    if (kDebugMode) {
+      print(logMessage);
+    }
     friendSessions[friendIdentifier] =
         Tuple3<Session, SessionCipher, SessionFactory>(
             encryptedMsg.session, sessionGroup.item2, sessionGroup.item3);
@@ -144,8 +150,13 @@ class ChatUser {
       final decrypedMessage = await sessionGroup.item2
           .decryptPreKeyWhisperMessage(receiverSession, encryptedMsg.body);
       final message = utf8.decode(decrypedMessage.plainText);
-      Log.instance.d(tag,
-          '(${self.name} | Device: ${self.deviceId}): Receive - $message  ');
+      final logMessage =
+          '(${self.name} | Device: ${self.deviceId}): Receive - $message  ';
+      Log.instance.d(tag, logMessage);
+
+      if (kDebugMode) {
+        print(logMessage);
+      }
 
       friendSessions[friendIdentifier] =
           Tuple3<Session, SessionCipher, SessionFactory>(
@@ -156,8 +167,14 @@ class ChatUser {
           .decryptWhisperMessage(sessionGroup.item1, encryptedMsg.body);
 
       final message = utf8.decode(decrypedMessage.plainText);
-      Log.instance.d(
-          tag, '(${self.name} | Device: ${self.deviceId}): Receive - $message');
+
+      final logMessage =
+          '(${self.name} | Device: ${self.deviceId}): Receive - $message  ';
+      Log.instance.d(tag, logMessage);
+
+      if (kDebugMode) {
+        print(logMessage);
+      }
 
       friendSessions[friendIdentifier] =
           Tuple3<Session, SessionCipher, SessionFactory>(
