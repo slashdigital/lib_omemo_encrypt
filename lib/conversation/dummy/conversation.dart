@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:lib_omemo_encrypt/messages/omemo_message.dart';
@@ -18,7 +19,7 @@ const Iterable<String> messages = [
   'Do you have time later?'
 ];
 
-const preKeys = 20;
+const preKeys = 200;
 enum Person {
   bob,
   alice,
@@ -131,8 +132,8 @@ class Conversation {
       String yourName, String yourCurrentDeviceId, String message) async {
     final result = retrieveChatInstances(yourName, yourCurrentDeviceId);
     final yourCurrentDeviceInstance = result.item1;
-    List<Tuple2<ChatUser, EncryptedMessage>> distributedEncryptedMessages = [];
 
+    List<Tuple2<ChatUser, EncryptedMessage>> distributedEncryptedMessages = [];
     for (var otherInstance in result.item2) {
       final encryptedMessage = await yourCurrentDeviceInstance.encryptMessageTo(
           otherInstance.getSelfIdentifier(),

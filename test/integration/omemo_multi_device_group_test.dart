@@ -35,7 +35,7 @@ void main() {
     // Alice want to chat to Bob from Device "C"
     // She get id from her bob public prekey
 
-    int max = 5;
+    int max = 10;
     int counter = max;
     bool finalResult = true;
     while (counter > 0) {
@@ -49,7 +49,7 @@ void main() {
       Device device = devices.elementAt(randomDevice);
 
       await gpParties.setup(person.name, device.name,
-          sender: counter == 5, offsetKey: counter * 3);
+          sender: counter == 5, offsetKey: counter * 10);
 
       final message =
           messages.elementAt(Utils.createRandomSequence(max: messages.length));

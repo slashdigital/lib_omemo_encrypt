@@ -10,7 +10,6 @@ import 'package:lib_omemo_encrypt/keys/whisper/prekey.dart';
 import 'package:lib_omemo_encrypt/keys/whisper/signed_prekey.dart';
 import 'package:lib_omemo_encrypt/messages/omemo_message.dart';
 import 'package:lib_omemo_encrypt/sessions/session.dart';
-import 'package:lib_omemo_encrypt/sessions/session_group.dart';
 import 'package:lib_omemo_encrypt/sessions/session_messaging.dart';
 import 'package:lib_omemo_encrypt/sessions/session_user.dart';
 import 'package:lib_omemo_encrypt/storage/in-memory/memory_storage.dart';
@@ -18,7 +17,7 @@ import 'package:lib_omemo_encrypt/utils/log.dart';
 import 'package:lib_omemo_encrypt/utils/utils.dart';
 import 'package:tuple/tuple.dart';
 
-const preKeys = 20;
+const preKeys = 200;
 
 final Axololt encryption = Axololt();
 
