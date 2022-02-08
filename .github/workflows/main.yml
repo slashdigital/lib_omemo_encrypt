@@ -1,4 +1,4 @@
-name: Publish xmpp_dart to Pub.dev
+name: Run test for lib_omemo_encrypt
 
 on:
   push:
