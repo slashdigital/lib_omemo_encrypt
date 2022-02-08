@@ -103,7 +103,7 @@ class SessionFactory extends SessionFactoryInterface {
         signedPreKeyId: receivingPreKeyBundle.signedPreKeyId);
     sessionState.localRegistrationId = await store.getLocalRegistrationId();
 
-    var session = Session();
+    var session = Session(sessionMessagingIdentifier);
     session.addState(sessionState);
     return session;
   }
@@ -135,7 +135,6 @@ class SessionFactory extends SessionFactoryInterface {
         parameters.theirRatchetKey.key,
         sendingRatchetKeyPair);
     final SessionState sessionState = SessionState(
-        sessionMessagingIdentifier: sessionMessagingIdentifier,
         sessionVersion: parameters.sessionVersion,
         remoteIdentityKey: parameters.theirIdentityKey,
         localIdentityKey: await parameters.ourIdentityKeyPair.identityKey,
@@ -199,7 +198,7 @@ class SessionFactory extends SessionFactoryInterface {
     final sessionState = await initializeBobSession(bobParameters);
     sessionState.theirBaseKey = PreKey(
         key: ECDHPublicKey.fromBytes(message.ek), preKeyId: message.pkId);
-    final clonedSession = Session();
+    final clonedSession = Session(sessionMessagingIdentifier);
     clonedSession.clone(session.states);
     clonedSession.addState(sessionState);
     return SessionCipherState(
@@ -230,7 +229,6 @@ class SessionFactory extends SessionFactoryInterface {
         parameters.sessionVersion, agreements);
 
     final SessionState sessionState = SessionState(
-      sessionMessagingIdentifier: sessionMessagingIdentifier,
       sessionVersion: parameters.sessionVersion,
       remoteIdentityKey: parameters.theirIdentityKey,
       localIdentityKey: await parameters.ourIdentityKeyPair.identityKey,

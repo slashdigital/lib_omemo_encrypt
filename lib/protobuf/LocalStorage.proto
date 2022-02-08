@@ -1,14 +1,93 @@
-syntax = "proto2";
-// Not used yet
-message SessionStorageMessage {
-  optional bytes localRegistrationId = 1;
-  optional bytes localIdentityKeyPair = 2;
-  optional bytes localPreKeyPairs = 3;
-  optional bytes localSignedPreKeyPairs = 4;
-  optional bytes session = 5;
+syntax = "proto3";
+
+message LocalKeyPair {
+  bytes privateKey = 1;
+  bytes publicKey = 2;
+  bytes keyType = 3;
+}
+message LocalPublicKey {
+  bytes publicKey = 1;
+  bytes keyType = 2;
 }
 
-message SessionStateStorageMessage {
+message LocalPreKeyPair {
+  uint32 preKeyId = 1;
+  LocalKeyPair keyPair = 2;
+}
+
+message LocalPreKey {
+  uint32 preKeyId = 1;
+  LocalPublicKey publicKey = 2;
+}
+
+message LocalPendingPreKey {
+  uint32 preKeyId = 1;
+  uint32 signedPreKeyId = 2;
+  LocalPublicKey publicKey = 3;
+}
+
+message LocalSignedPreKeyPair {
+  uint32 signedPreKeyId = 1;
+  LocalKeyPair keyPair = 2;
+}
+
+message LocalSignedPreKey {
+  uint32 signedPreKeyId = 1;
+  LocalPublicKey publicKey = 2;
+}
+
+message LocalMessageKey {
+  bytes cipherKey = 1;
+  bytes macKey = 2;
+  bytes iv = 3;
+}
+
+message LocalChain {
+  bytes key = 1;
+  uint32 index = 2;
+  repeated LocalMessageKey messageKeys = 3;
+}
+
+message LocalPublicKeyAndChain {
+  bytes ephemeralPublicKey = 1;
+  LocalChain chain = 2;
+}
+
+message LocalSessionMessaging {
+  string userName = 1;
+  string userDeviceId = 2;
+  optional string groupName = 3;
+  optional string groupId = 4;
+  optional string groupSenderName = 5;
+  optional string groupSenderDeviceId = 6;
+  bool isGroup = 7;
+} 
+
+message LocalSessionState {
+  LocalSessionMessaging sessionMessaging = 1;
+  uint32 sessionVersion = 2;
+  LocalPublicKey remoteIdentityKey = 3;
+  LocalPublicKey localIdentityKey = 4;
+  string localRegistrationId = 5;
+  bytes rootKey = 6;
+  LocalChain sendingChain = 7;
+  LocalKeyPair senderRatchetKeyPair = 8;
+  repeated LocalPublicKeyAndChain receivingChains = 9;
+  uint32 previousCounter = 10;
+  optional LocalPendingPreKey pending = 11; 
+  optional LocalPreKey theirBaseKey = 12;
+  // LocalSessionMessaging localRegistrationId = 1;
+  // optional bytes localIdentityKeyPair = 2;
+  // optional bytes localPreKeyPairs = 3;
+  // optional bytes localSignedPreKeyPairs = 4;
+  // optional bytes session = 5;
+}
+
+message LocalSession {
+  repeated LocalSessionState sessionStates = 1;
+}
+
+message LocalStorage {
   optional bytes localRegistrationId = 1;
   optional bytes localIdentityKeyPair = 2;
   optional bytes localPreKeyPairs = 3;

@@ -1,3 +1,4 @@
+import 'package:equatable/equatable.dart';
 import 'package:lib_omemo_encrypt/sessions/session_group.dart';
 import 'package:lib_omemo_encrypt/sessions/session_user.dart';
 
@@ -46,7 +47,7 @@ enum SessionChatType { personalChat, groupChat }
 /// - session[].state.pending._keyType (enum)
 /// - session[].state.pending.signedPreKeyId (int)
 /// - session[].state.theirBaseKey (public key)
-class SessionMessaging {
+class SessionMessaging extends Equatable {
   final SessionUser sessionUser;
   final SessionGroup? sessionGroup;
   final SessionChatType sessionChatType;
@@ -87,4 +88,7 @@ class SessionMessaging {
             groupName: groupName, groupId: groupId, sender: _sessionUser),
         sessionChatType: SessionChatType.groupChat);
   }
+
+  @override
+  List<Object?> get props => [sessionUser, sessionGroup, sessionChatType];
 }

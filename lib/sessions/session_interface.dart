@@ -6,4 +6,6 @@ abstract class SessionInterface {
   SessionState mostRecentState();
   addState(SessionState sessionState);
   removeState(SessionState sessionState);
+
+  SessionInterface();
 }

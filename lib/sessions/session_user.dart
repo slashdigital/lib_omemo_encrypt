@@ -1,4 +1,6 @@
-class SessionUser {
+import 'package:equatable/equatable.dart';
+
+class SessionUser extends Equatable {
   final String name;
   final String deviceId;
 
@@ -8,4 +10,7 @@ class SessionUser {
   String toString() {
     return 'User: $name, Device: $deviceId';
   }
+
+  @override
+  List<Object?> get props => [name, deviceId];
 }

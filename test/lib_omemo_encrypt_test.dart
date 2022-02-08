@@ -152,8 +152,7 @@ void main() {
     var bobSession = await bobSessionFactory
         .createSessionFromPreKeyBundle(bobReceivingBundle);
 
-    final bobCipherSession = SessionCipher();
-    final aliceCipherSession = SessionCipher();
+    final bobCipherSession = SessionCipher(bobSessionIdentifier);
     personSessions[Person.bob] = Tuple3<Session, SessionCipher, SessionFactory>(
         bobSession, bobCipherSession, bobSessionFactory);
     // ### 5. bob try to encrypt and the first whisper key
@@ -217,7 +216,9 @@ void main() {
         sessionChatType: SessionChatType.personalChat);
     final aliceSessionFactory = SessionFactory(
         store: aliceStore, sessionMessagingIdentifier: aliceSessionIdentifier);
-    Session _aliceSession = Session();
+    Session _aliceSession = Session(aliceSessionIdentifier);
+
+    final aliceCipherSession = SessionCipher(aliceSessionIdentifier);
     personSessions[Person.alice] =
         Tuple3<Session, SessionCipher, SessionFactory>(
             _aliceSession, aliceCipherSession, aliceSessionFactory);
