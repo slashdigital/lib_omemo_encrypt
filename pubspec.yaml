@@ -1,6 +1,6 @@
 name: lib_omemo_encrypt
-description: A new Flutter package project.
-version: 0.0.1
+description: Dart Library for Signal/Omemo-like encryption 
+version: 0.1.0
 homepage: www.slash.co
 
 environment:
