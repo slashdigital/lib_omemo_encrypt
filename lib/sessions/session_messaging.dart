@@ -1,6 +1,10 @@
+import 'dart:typed_data';
+
 import 'package:equatable/equatable.dart';
+import 'package:lib_omemo_encrypt/serialization/serialization_interface.dart';
 import 'package:lib_omemo_encrypt/sessions/session_group.dart';
 import 'package:lib_omemo_encrypt/sessions/session_user.dart';
+import 'package:lib_omemo_encrypt/protobuf/LocalStorage.pb.dart' as local_proto;
 
 enum SessionChatType { personalChat, groupChat }
 
@@ -47,12 +51,15 @@ enum SessionChatType { personalChat, groupChat }
 /// - session[].state.pending._keyType (enum)
 /// - session[].state.pending.signedPreKeyId (int)
 /// - session[].state.theirBaseKey (public key)
-class SessionMessaging extends Equatable {
-  final SessionUser sessionUser;
-  final SessionGroup? sessionGroup;
-  final SessionChatType sessionChatType;
+class SessionMessaging extends Equatable
+    implements
+        Serializable<SessionMessaging, local_proto.LocalSessionMessaging> {
+  late SessionUser sessionUser;
+  late SessionGroup? sessionGroup;
+  late SessionChatType sessionChatType;
 
-  const SessionMessaging(
+  SessionMessaging();
+  SessionMessaging.create(
       {required this.sessionUser,
       required this.sessionGroup,
       required this.sessionChatType});
@@ -64,7 +71,7 @@ class SessionMessaging extends Equatable {
     required String friendName,
     required String friendDeviceId,
   }) {
-    return SessionMessaging(
+    return SessionMessaging.create(
         sessionUser: SessionUser(name: friendName, deviceId: friendDeviceId),
         sessionGroup: null,
         sessionChatType: SessionChatType.personalChat);
@@ -82,7 +89,7 @@ class SessionMessaging extends Equatable {
   }) {
     final _sessionUser =
         SessionUser(name: friendInGroupName, deviceId: friendInGroupDeviceId);
-    return SessionMessaging(
+    return SessionMessaging.create(
         sessionUser: _sessionUser,
         sessionGroup: SessionGroup(
             groupName: groupName, groupId: groupId, sender: _sessionUser),
@@ -91,4 +98,50 @@ class SessionMessaging extends Equatable {
 
   @override
   List<Object?> get props => [sessionUser, sessionGroup, sessionChatType];
+
+  @override
+  Future<SessionMessaging> deserialize(Uint8List bytes) async {
+    final proto = local_proto.LocalSessionMessaging.fromBuffer(bytes);
+    final _sessionChatType = proto.isGroup
+        ? SessionChatType.groupChat
+        : SessionChatType.personalChat;
+    SessionGroup? _sessionGroup;
+    if (proto.isGroup) {
+      _sessionGroup = SessionGroup(
+          groupName: proto.groupName,
+          groupId: proto.groupId,
+          sender: SessionUser(
+              name: proto.groupSenderName,
+              deviceId: proto.groupSenderDeviceId));
+    }
+    SessionUser _sessionUser =
+        SessionUser(name: proto.userName, deviceId: proto.userDeviceId);
+    return SessionMessaging.create(
+        sessionUser: _sessionUser,
+        sessionGroup: _sessionGroup,
+        sessionChatType: _sessionChatType);
+  }
+
+  @override
+  Future<Uint8List> serialize() async {
+    return (await serializeToProto()).writeToBuffer();
+  }
+
+  @override
+  Future<local_proto.LocalSessionMessaging> serializeToProto() async {
+    final groupId = sessionGroup != null ? sessionGroup!.groupId : '';
+    final groupName = sessionGroup != null ? sessionGroup!.groupName : '';
+    final groupSenderName =
+        sessionGroup != null ? sessionGroup!.sender.name : '';
+    final groupSenderDeviceId =
+        sessionGroup != null ? sessionGroup!.sender.deviceId : '';
+    return local_proto.LocalSessionMessaging(
+        groupId: groupId,
+        groupName: groupName,
+        groupSenderDeviceId: groupSenderDeviceId,
+        groupSenderName: groupSenderName,
+        userName: sessionUser.name,
+        userDeviceId: sessionUser.deviceId,
+        isGroup: sessionChatType == SessionChatType.groupChat);
+  }
 }

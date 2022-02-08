@@ -142,8 +142,8 @@ void main() {
     );
 
     // ### 4 Bob try to init the first cipher session
-    const bobSessionIdentifier = SessionMessaging(
-        sessionUser: SessionUser(name: '62457689343', deviceId: '1'),
+    final bobSessionIdentifier = SessionMessaging.create(
+        sessionUser: const SessionUser(name: '62457689343', deviceId: '1'),
         sessionGroup: null,
         sessionChatType: SessionChatType.personalChat);
 
@@ -210,8 +210,8 @@ void main() {
       key: alicekeyPackage.signedPreKeyPair.keyPair,
     ));
 
-    const aliceSessionIdentifier = SessionMessaging(
-        sessionUser: SessionUser(name: '62457689347', deviceId: '2'),
+    final aliceSessionIdentifier = SessionMessaging.create(
+        sessionUser: const SessionUser(name: '62457689347', deviceId: '2'),
         sessionGroup: null,
         sessionChatType: SessionChatType.personalChat);
     final aliceSessionFactory = SessionFactory(
