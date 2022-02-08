@@ -7,7 +7,8 @@ import 'package:lib_omemo_encrypt/serialization/serialization_interface.dart';
 import 'package:lib_omemo_encrypt/protobuf/LocalStorage.pb.dart' as local_proto;
 import 'package:lib_omemo_encrypt/utils/utils.dart';
 
-class ECDHPublicKey extends ECDHKey implements Serializable<ECDHPublicKey> {
+class ECDHPublicKey extends ECDHKey
+    implements Serializable<ECDHPublicKey, local_proto.LocalPublicKey> {
   SimplePublicKey? _publicKey;
 
   Future<SimplePublicKey> get key async => _publicKey!;
@@ -32,11 +33,13 @@ class ECDHPublicKey extends ECDHKey implements Serializable<ECDHPublicKey> {
 
   @override
   Future<Uint8List> serialize() async {
+    return (await serializeToProto()).writeToBuffer().buffer.asUint8List();
+  }
+
+  @override
+  Future<local_proto.LocalPublicKey> serializeToProto() async {
     final data = _publicKey!.bytes;
     final keyType = Utils.convertStringToBytes(_publicKey!.type.name);
-    return local_proto.LocalPublicKey(keyType: keyType, publicKey: data)
-        .writeToBuffer()
-        .buffer
-        .asUint8List();
+    return local_proto.LocalPublicKey(keyType: keyType, publicKey: data);
   }
 }
