@@ -53,7 +53,8 @@ enum SessionChatType { personalChat, groupChat }
 /// - session[].state.theirBaseKey (public key)
 class SessionMessaging extends Equatable
     implements
-        Serializable<SessionMessaging, local_proto.LocalSessionMessaging> {
+        Serializable<SessionMessaging, local_proto.LocalSessionMessaging>,
+        Comparable {
   late SessionUser sessionUser;
   late SessionGroup? sessionGroup;
   late SessionChatType sessionChatType;
@@ -143,5 +144,14 @@ class SessionMessaging extends Equatable
         userName: sessionUser.name,
         userDeviceId: sessionUser.deviceId,
         isGroup: sessionChatType == SessionChatType.groupChat);
+  }
+
+  @override
+  int compareTo(other) {
+    final ourContent =
+        '${sessionUser.toString()}-${sessionGroup != null ? sessionGroup.toString() : 'N/A'}';
+    final otherContent =
+        '${other.sessionUser.toString()}-${other.sessionGroup != null ? other.sessionGroup.toString() : 'N/A'}';
+    return ourContent.compareTo(otherContent);
   }
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lib_omemo_encrypt/conversation/dummy/conversation_enum_dummy.dart';
+import 'package:lib_omemo_encrypt/conversation/dummy/conversation_person.dart';
 import 'package:lib_omemo_encrypt/lib_omemo_encrypt.dart';
 import 'package:lib_omemo_encrypt/sessions/session_group.dart';
 import 'package:lib_omemo_encrypt/utils/utils.dart';

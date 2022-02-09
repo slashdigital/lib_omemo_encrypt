@@ -1,4 +1,6 @@
+import 'dart:collection';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:lib_omemo_encrypt/encryptions/axolotl/axolotl.dart';
@@ -17,25 +19,59 @@ import 'package:lib_omemo_encrypt/utils/log.dart';
 import 'package:lib_omemo_encrypt/utils/utils.dart';
 import 'package:tuple/tuple.dart';
 
-const preKeys = 200;
+const numOfPreKeysSample = 200;
 
 final Axololt encryption = Axololt();
 
-class ChatUser {
+class ConversationSessionDefinition {
+  final Session session;
+  final SessionCipher sessionCipher;
+  final SessionFactory sessionFactory;
+
+  const ConversationSessionDefinition(
+      {required this.session,
+      required this.sessionCipher,
+      required this.sessionFactory});
+  ConversationSessionDefinition copyWith({
+    Session? session,
+    SessionCipher? sessionCipher,
+    SessionFactory? sessionFactory,
+  }) {
+    return ConversationSessionDefinition(
+        session: session ?? this.session,
+        sessionCipher: sessionCipher ?? this.sessionCipher,
+        sessionFactory: sessionFactory ?? this.sessionFactory);
+  }
+}
+
+class ConversationSession {
   late SessionUser self;
-  Map<SessionMessaging, Tuple3<Session, SessionCipher, SessionFactory>>
-      friendSessions = {};
+  final friendSessions =
+      SplayTreeMap<SessionMessaging, ConversationSessionDefinition>();
   late PreKeyPackage keyPackage;
   late MemoryStorage store;
-  Map<SessionMessaging, bool> friendSessionsSetup = {};
-  // bool isSessionSetup = false;
 
-  ChatUser();
-  ChatUser.create(this.keyPackage, this.store);
+  ConversationSession();
+  ConversationSession.create(this.keyPackage, this.store);
 
-  static Future<ChatUser> createChat(
-      {required String name, required String deviceId}) async {
-    final keyPackage = await encryption.generatePreKeysPackage(preKeys);
+  static Future<ConversationSession> loadFromBufferMap() async {
+    throw UnimplementedError();
+  }
+
+  Future<Map<SessionMessaging, Uint8List>> writeToBufferMap() async {
+    Map<SessionMessaging, Uint8List> bufferMaps = {};
+    for (var key in friendSessions.keys) {
+      final eachValue = friendSessions[key];
+      bufferMaps[key] = await eachValue!.session.serialize();
+    }
+    return bufferMaps;
+  }
+
+  static Future<ConversationSession> createConversationSession(
+      {required String name,
+      required String deviceId,
+      int numOfPreKeys = numOfPreKeysSample}) async {
+    final keyPackage = await encryption.generatePreKeysPackage(numOfPreKeys);
     final _store = MemoryStorage(
       localRegistrationId: keyPackage.registrationId,
       localIdentityKeyPair: keyPackage.identityKeyPair,
@@ -47,7 +83,7 @@ class ChatUser {
       key: keyPackage.signedPreKeyPair.keyPair,
     ));
 
-    final chatUser = ChatUser.create(keyPackage, _store);
+    final chatUser = ConversationSession.create(keyPackage, _store);
     chatUser.self = SessionUser(name: name, deviceId: deviceId);
     return chatUser;
   }
@@ -59,6 +95,10 @@ class ChatUser {
         sessionChatType: SessionChatType.personalChat);
   }
 
+  bool checkFriendSessionSetup(SessionMessaging friendSession) {
+    return friendSessions.containsKey(friendSession);
+  }
+
   setupSession(SessionMessaging friendSession) {
     final SessionMessaging sessionMessagingOfFriend = friendSession;
 
@@ -67,10 +107,18 @@ class ChatUser {
     Session _session = Session.create(sessionMessagingOfFriend);
 
     final _cipherSession = SessionCipher(sessionMessagingOfFriend);
-    friendSessions[friendSession] =
-        (Tuple3<Session, SessionCipher, SessionFactory>(
-            _session, _cipherSession, _sessionFactory));
-    friendSessionsSetup[friendSession] = true;
+    friendSessions.addEntries([
+      MapEntry<SessionMessaging, ConversationSessionDefinition>(
+          friendSession,
+          ConversationSessionDefinition(
+              session: _session,
+              sessionCipher: _cipherSession,
+              sessionFactory: _sessionFactory))
+    ]);
+    // friendSessions[friendSession] =
+    //     (Tuple3<Session, SessionCipher, SessionFactory>(
+    //         _session, _cipherSession, _sessionFactory));
+    // friendSessionsSetup[friendSession] = true;
   }
 
   setupSessionFromPreKeyBundle(SessionMessaging friendSession,
@@ -83,10 +131,18 @@ class ChatUser {
         .createSessionFromPreKeyBundle(receivingPreKeyBundle);
 
     final _cipherSession = SessionCipher(sessionMessagingOfFriend);
-    friendSessions[friendSession] =
-        (Tuple3<Session, SessionCipher, SessionFactory>(
-            _session, _cipherSession, _sessionFactory));
-    friendSessionsSetup[friendSession] = true;
+    friendSessions.addEntries([
+      MapEntry<SessionMessaging, ConversationSessionDefinition>(
+          friendSession,
+          ConversationSessionDefinition(
+              session: _session,
+              sessionCipher: _cipherSession,
+              sessionFactory: _sessionFactory))
+    ]);
+    // friendSessions[friendSession] =
+    //     (Tuple3<Session, SessionCipher, SessionFactory>(
+    //         _session, _cipherSession, _sessionFactory));
+    // friendSessionsSetup[friendSession] = true;
   }
 
   PreKeyPair getPreKey(int index) {
@@ -121,9 +177,9 @@ class ChatUser {
 
   Future<EncryptedMessage> encryptMessageTo(
       SessionMessaging friendIdentifier, String message) async {
-    final sessionGroup = friendSessions[friendIdentifier]!;
-    final encryptedMsg = await sessionGroup.item2.encryptMessage(
-        sessionGroup.item1, Utils.convertStringToBytes(message));
+    final sessionDefinition = friendSessions[friendIdentifier]!;
+    final encryptedMsg = await sessionDefinition.sessionCipher.encryptMessage(
+        sessionDefinition.session, Utils.convertStringToBytes(message));
 
     final logMessage =
         '(${self.name} | Device: ${self.deviceId}): Send - $message';
@@ -131,22 +187,30 @@ class ChatUser {
     if (kDebugMode) {
       print(logMessage);
     }
-    friendSessions[friendIdentifier] =
-        Tuple3<Session, SessionCipher, SessionFactory>(
-            encryptedMsg.session, sessionGroup.item2, sessionGroup.item3);
+    friendSessions.addEntries([
+      MapEntry<SessionMessaging, ConversationSessionDefinition>(
+          friendIdentifier,
+          sessionDefinition.copyWith(
+            session: encryptedMsg.session,
+          ))
+    ]);
+    // friendSessions[friendIdentifier] =
+    //     Tuple3<Session, SessionCipher, SessionFactory>(
+    //         encryptedMsg.session, sessionGroup.item2, sessionGroup.item3);
     return encryptedMsg;
   }
 
   Future<DecryptedMessage> decryptMessageFrom(
       SessionMessaging friendIdentifier, EncryptedMessage encryptedMsg) async {
-    final sessionGroup = friendSessions[friendIdentifier]!;
+    // final sessionGroup = friendSessions[friendIdentifier]!;
+    final sessionDefinition = friendSessions[friendIdentifier]!;
     if (encryptedMsg.isPreKeyWhisperMessage) {
-      final _ciperSession = await sessionGroup.item3
+      final _ciperSession = await sessionDefinition.sessionFactory
           .createSessionFromPreKeyWhisperMessage(
-              sessionGroup.item1, encryptedMsg.body);
+              sessionDefinition.session, encryptedMsg.body);
       final receiverSession = _ciperSession.session;
 
-      final decrypedMessage = await sessionGroup.item2
+      final decrypedMessage = await sessionDefinition.sessionCipher
           .decryptPreKeyWhisperMessage(receiverSession, encryptedMsg.body);
       final message = utf8.decode(decrypedMessage.plainText);
       final logMessage =
@@ -156,14 +220,21 @@ class ChatUser {
       if (kDebugMode) {
         print(logMessage);
       }
+      friendSessions.addEntries([
+        MapEntry<SessionMessaging, ConversationSessionDefinition>(
+            friendIdentifier,
+            sessionDefinition.copyWith(
+              session: decrypedMessage.session,
+            ))
+      ]);
 
-      friendSessions[friendIdentifier] =
-          Tuple3<Session, SessionCipher, SessionFactory>(
-              decrypedMessage.session, sessionGroup.item2, sessionGroup.item3);
+      // friendSessions[friendIdentifier] =
+      //     Tuple3<Session, SessionCipher, SessionFactory>(
+      //         decrypedMessage.session, sessionGroup.item2, sessionGroup.item3);
       return decrypedMessage;
     } else {
-      final decrypedMessage = await sessionGroup.item2
-          .decryptWhisperMessage(sessionGroup.item1, encryptedMsg.body);
+      final decrypedMessage = await sessionDefinition.sessionCipher
+          .decryptWhisperMessage(sessionDefinition.session, encryptedMsg.body);
 
       final message = utf8.decode(decrypedMessage.plainText);
 
@@ -175,9 +246,17 @@ class ChatUser {
         print(logMessage);
       }
 
-      friendSessions[friendIdentifier] =
-          Tuple3<Session, SessionCipher, SessionFactory>(
-              decrypedMessage.session, sessionGroup.item2, sessionGroup.item3);
+      friendSessions.addEntries([
+        MapEntry<SessionMessaging, ConversationSessionDefinition>(
+            friendIdentifier,
+            sessionDefinition.copyWith(
+              session: decrypedMessage.session,
+            ))
+      ]);
+
+      // friendSessions[friendIdentifier] =
+      //     Tuple3<Session, SessionCipher, SessionFactory>(
+      //         decrypedMessage.session, sessionGroup.item2, sessionGroup.item3);
       return decrypedMessage;
     }
   }

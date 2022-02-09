@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lib_omemo_encrypt/conversation/dummy/conversation_enum_dummy.dart';
+import 'package:lib_omemo_encrypt/conversation/dummy/conversation_person.dart';
 import 'package:lib_omemo_encrypt/utils/utils.dart';
 import 'package:lib_omemo_encrypt/conversation/dummy/conversation.dart';
 
@@ -21,7 +23,7 @@ void main() {
     // Alice want to chat to Bob from Device "C"
     // She get id from her bob public prekey
 
-    int max = 5;
+    int max = 20;
     int counter = max;
     bool finalResult = true;
     while (counter > 0) {
@@ -50,5 +52,18 @@ void main() {
       finalResult = finalResult && result;
     }
     expect(finalResult, true);
+  });
+  test('Should parse session of each conversation to mapped of buffer',
+      () async {
+    ConversationPerson tom = await ConversationPerson.init('Tom', ['Device-A']);
+    ConversationPerson jerry =
+        await ConversationPerson.init('Jerry', ['Device-B']);
+
+    final dmTomJerry = Conversation.createPerson([tom, jerry]);
+    await dmTomJerry.setup('Tom', 'Device-A');
+
+    final bufferMappedSession =
+        await dmTomJerry.peopleParties[0].appInstances[0].writeToBufferMap();
+    expect(bufferMappedSession.keys.length, 1);
   });
 }

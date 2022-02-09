@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lib_omemo_encrypt/conversation/dummy/chat_user.dart';
+import 'package:lib_omemo_encrypt/conversation/dummy/conversation_session.dart';
 
 const preKeys = 20;
 enum Person {
@@ -10,17 +10,20 @@ enum Person {
 }
 
 void main() {
-  late ChatUser aliceApp;
-  late ChatUser aliceAppSecondDevice;
+  late ConversationSession aliceApp;
+  late ConversationSession aliceAppSecondDevice;
 
-  late ChatUser bobApp;
-  late ChatUser bobAppSecondDevice;
+  late ConversationSession bobApp;
+  late ConversationSession bobAppSecondDevice;
   setUp(() async {
-    aliceApp = await ChatUser.createChat(name: 'Alice', deviceId: '1');
-    aliceAppSecondDevice =
-        await ChatUser.createChat(name: 'Alice', deviceId: '2');
-    bobApp = await ChatUser.createChat(name: 'Bob', deviceId: '3');
-    bobAppSecondDevice = await ChatUser.createChat(name: 'Bob', deviceId: '4');
+    aliceApp = await ConversationSession.createConversationSession(
+        name: 'Alice', deviceId: '1');
+    aliceAppSecondDevice = await ConversationSession.createConversationSession(
+        name: 'Alice', deviceId: '2');
+    bobApp = await ConversationSession.createConversationSession(
+        name: 'Bob', deviceId: '3');
+    bobAppSecondDevice = await ConversationSession.createConversationSession(
+        name: 'Bob', deviceId: '4');
   });
   test(
       'should fully encrypt and decrypt from Alice to one of her device and to Bob and his other device',
@@ -66,6 +69,5 @@ void main() {
     final decryptedMessageFromAliceDevice = await aliceAppSecondDevice
         .decryptMessageFrom(aliceApp.getSelfIdentifier(), encryptedToHerDevice);
     expect(utf8.decode(decryptedMessageFromAliceDevice.plainText), 'Hello Bob');
-    // bobApp.encryptMessageTo(aliceApp.getSelfIdentifier(), 'Hello Alice');
   });
 }
