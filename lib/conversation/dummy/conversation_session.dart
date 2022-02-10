@@ -115,10 +115,6 @@ class ConversationSession {
               sessionCipher: _cipherSession,
               sessionFactory: _sessionFactory))
     ]);
-    // friendSessions[friendSession] =
-    //     (Tuple3<Session, SessionCipher, SessionFactory>(
-    //         _session, _cipherSession, _sessionFactory));
-    // friendSessionsSetup[friendSession] = true;
   }
 
   setupSessionFromPreKeyBundle(SessionMessaging friendSession,
@@ -139,10 +135,6 @@ class ConversationSession {
               sessionCipher: _cipherSession,
               sessionFactory: _sessionFactory))
     ]);
-    // friendSessions[friendSession] =
-    //     (Tuple3<Session, SessionCipher, SessionFactory>(
-    //         _session, _cipherSession, _sessionFactory));
-    // friendSessionsSetup[friendSession] = true;
   }
 
   PreKeyPair getPreKey(int index) {
@@ -193,15 +185,11 @@ class ConversationSession {
             session: encryptedMsg.session,
           ))
     ]);
-    // friendSessions[friendIdentifier] =
-    //     Tuple3<Session, SessionCipher, SessionFactory>(
-    //         encryptedMsg.session, sessionGroup.item2, sessionGroup.item3);
     return encryptedMsg;
   }
 
   Future<DecryptedMessage> decryptMessageFrom(
       SessionMessaging friendIdentifier, EncryptedMessage encryptedMsg) async {
-    // final sessionGroup = friendSessions[friendIdentifier]!;
     final sessionDefinition = friendSessions[friendIdentifier]!;
     if (encryptedMsg.isPreKeyWhisperMessage) {
       final _ciperSession = await sessionDefinition.sessionFactory
@@ -227,9 +215,6 @@ class ConversationSession {
             ))
       ]);
 
-      // friendSessions[friendIdentifier] =
-      //     Tuple3<Session, SessionCipher, SessionFactory>(
-      //         decrypedMessage.session, sessionGroup.item2, sessionGroup.item3);
       return decrypedMessage;
     } else {
       final decrypedMessage = await sessionDefinition.sessionCipher
@@ -253,9 +238,6 @@ class ConversationSession {
             ))
       ]);
 
-      // friendSessions[friendIdentifier] =
-      //     Tuple3<Session, SessionCipher, SessionFactory>(
-      //         decrypedMessage.session, sessionGroup.item2, sessionGroup.item3);
       return decrypedMessage;
     }
   }
