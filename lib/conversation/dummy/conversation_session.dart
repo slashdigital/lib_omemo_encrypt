@@ -152,19 +152,11 @@ class ConversationSession {
   // Normally server fetch for the other
   Future<ReceivingPreKeyBundle> givePreKeyBundleForFriend(int index) async {
     final receivingPreKeyPublic = await keyPackage.preKeys[index].preKey;
-    // Give new signed key for new people?
-    final signedPreKey =
-        await encryption.generateSignedPreKey(receivingPreKeyPublic.preKeyId);
-    final newSignedKey = SignedPreKeyPair.create(
-      signedPreKeyId: signedPreKey.signedPreKeyId,
-      key: signedPreKey.keyPair,
-    );
-    final receivingSignKey = newSignedKey;
+    // We need to rotate signed key periodically - daily etc..
+    final signedPreKey = keyPackage.signedPreKeyPair;
+    final receivingSignKey = signedPreKey;
     final receivingIdentityKey = keyPackage.identityKeyPair;
-    final signature =
-        await encryption.generateSignature(receivingIdentityKey, signedPreKey);
-
-    store.addLocalSignedPreKeyPair(newSignedKey);
+    final signature = keyPackage.signature;
 
     final receivingBundle = ReceivingPreKeyBundle(
         userId: '${self.name}-${self.deviceId}',
@@ -172,6 +164,13 @@ class ConversationSession {
         preKey: receivingPreKeyPublic,
         signedPreKey: await receivingSignKey.signedPreKey,
         signature: signature);
+    if (kDebugMode) {
+      print('====== Setup for');
+      print('User: ${self.name}-${self.deviceId}');
+      print('Ik: ${(await receivingBundle.identityKey.key.bytes)}');
+      print('SPK: ${(await receivingBundle.signedPreKey!.key.bytes)}');
+      print('SPKS: $signature');
+    }
     return receivingBundle;
   }
 

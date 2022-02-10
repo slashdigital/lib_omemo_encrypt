@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:lib_omemo_encrypt/conversation/dummy/conversation_enum_dummy.dart';
 import 'package:lib_omemo_encrypt/conversation/dummy/conversation_person.dart';
 import 'package:lib_omemo_encrypt/conversation/dummy/conversation_session.dart';
@@ -71,17 +72,26 @@ class Conversation {
   }
 
   Future<void> setup(String yourName, String yourCurrentDeviceId,
-      {int offsetKey = 0, bool sender = false}) async {
+      {int offsetKey = 0}) async {
     int _offsetKey = offsetKey;
     final result = retrieveChatInstances(yourName, yourCurrentDeviceId);
+
+    if (kDebugMode) {
+      print(
+          '========================================== Send To ${result.item2.map((e) => e.self.toString()).join(', ')}');
+    }
     final yourCurrentDeviceInstance = result.item1;
 
     for (var otherInstance in result.item2) {
       if (!yourCurrentDeviceInstance
           .checkFriendSessionSetup(otherInstance.getSelfIdentifier())) {
+        final receivingBundle =
+            await otherInstance.givePreKeyBundleForFriend(_offsetKey);
+        if (kDebugMode) {
+          print('Output from func: ${receivingBundle.signature}');
+        }
         await yourCurrentDeviceInstance.setupSessionFromPreKeyBundle(
-            otherInstance.getSelfIdentifier(),
-            await otherInstance.givePreKeyBundleForFriend(_offsetKey));
+            otherInstance.getSelfIdentifier(), receivingBundle);
         updateState(yourCurrentDeviceInstance);
         _offsetKey++;
       }

@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:flutter/foundation.dart';
 import 'package:lib_omemo_encrypt/encryptions/axolotl/axolotl_interface.dart';
 import 'package:lib_omemo_encrypt/encryptions/axolotl/ed25519.dart';
 import 'package:lib_omemo_encrypt/keys/bundle/prekey_package.dart';
@@ -84,6 +85,10 @@ class Axololt extends AxololtInterface {
     const signedPreKeyPairId = 1;
     final signedPreKey = await generateSignedPreKey(signedPreKeyPairId);
     final signature = await generateSignature(identityKeyPair, signedPreKey);
+    if (kDebugMode) {
+      print(
+          'New Signature Generation: $signature for ${await (await identityKeyPair.identityKey).key.bytes}');
+    }
 
     return PreKeyPackage(
         identityKeyPair: identityKeyPair,

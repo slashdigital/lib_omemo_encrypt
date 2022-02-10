@@ -50,8 +50,7 @@ void main() {
       int randomDevice = Utils.createRandomSequence(max: devices.length);
       Device device = devices.elementAt(randomDevice);
 
-      await gpParties.setup(person.name, device.name,
-          sender: counter == 5, offsetKey: counter * 10);
+      await gpParties.setup(person.name, device.name, offsetKey: counter * 10);
 
       final message =
           messages.elementAt(Utils.createRandomSequence(max: messages.length));

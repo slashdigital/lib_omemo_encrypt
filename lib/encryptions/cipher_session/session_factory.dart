@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:flutter/foundation.dart';
 import 'package:lib_omemo_encrypt/constants/constant.dart';
 import 'package:lib_omemo_encrypt/encryptions/axolotl/axolotl.dart';
 import 'package:lib_omemo_encrypt/encryptions/cipher_session/bob_cipher_session_params.dart';
@@ -9,6 +10,7 @@ import 'package:lib_omemo_encrypt/encryptions/cipher_session/bob_cipher_session_
 import 'package:lib_omemo_encrypt/encryptions/cipher_session/session_factory_interface.dart';
 import 'package:lib_omemo_encrypt/encryptions/cipher_session/alice_cipher_session_params.dart';
 import 'package:lib_omemo_encrypt/exceptions/invalid_key_exception.dart';
+import 'package:lib_omemo_encrypt/exceptions/invalid_signature_exception.dart';
 import 'package:lib_omemo_encrypt/keys/bundle/receiving_prekey_bundle.dart';
 import 'package:lib_omemo_encrypt/keys/ecc/publickey.dart';
 import 'package:lib_omemo_encrypt/keys/whisper/identity_key.dart';
@@ -57,8 +59,16 @@ class SessionFactory extends SessionFactoryInterface {
           receivingPreKeyBundle.signature,
           receivingPreKeyBundle.identityKey.key);
 
+      if (kDebugMode) {
+        print('====== Verify signature debug for');
+        print('Current User: ${sessionMessagingIdentity.toString()}');
+        print('Ik: ${(await receivingPreKeyBundle.identityKey.key.bytes)}');
+        print('SPK: $data');
+        print('SPKS: ${receivingPreKeyBundle.signature}');
+      }
+
       if (!validSignature) {
-        throw InvalidKeyException('Invalid signature on device key');
+        throw InvalidSignatureException('Invalid signature on device key');
       }
     }
     if (receivingPreKeyBundle.signedPreKey == null) {

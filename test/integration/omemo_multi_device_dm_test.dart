@@ -34,17 +34,18 @@ void main() {
       final Iterable<Device> devices = personDevices[person]!;
       int randomDevice = Utils.createRandomSequence(max: devices.length);
       Device device = devices.elementAt(randomDevice);
+      if (kDebugMode) {
+        print(
+            '================== Message Counter ${max - counter} ==================');
+        print(
+            '========================================== Send from ${person.name} - ${device.name}');
+      }
 
-      await dmAliceBob.setup(person.name, device.name,
-          sender: counter == 5, offsetKey: counter * 3);
+      await dmAliceBob.setup(person.name, device.name, offsetKey: counter * 10);
 
       final message =
           messages.elementAt(Utils.createRandomSequence(max: messages.length));
 
-      if (kDebugMode) {
-        print(
-            '================== Message Counter ${max - counter} ==================');
-      }
       final distributedMessage = await dmAliceBob.encryptMessageToOthers(
           person.name, device.name, message);
       final result = await dmAliceBob.decryptDistributedMessageOfTarget(
