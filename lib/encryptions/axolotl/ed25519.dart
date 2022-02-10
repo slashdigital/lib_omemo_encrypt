@@ -92,15 +92,21 @@ Uint8List sign(Uint8List privateKey, Uint8List message, Uint8List random) {
 }
 
 // verify checks whether the message has a valid signature.
-bool verifySig(Uint8List publicKey, Uint8List message, Uint8List signature) {
-  publicKey[31] &= 0x7F;
+// Added final to prevent temparing the data
+bool verifySig(final Uint8List publicKey, final Uint8List message,
+    final Uint8List signature) {
+  Uint8List _publicKey = Uint8List.fromList(publicKey);
+  Uint8List _signature = Uint8List.fromList(signature);
+  Uint8List _message = Uint8List.fromList(message);
+
+  _publicKey[31] &= 0x7F;
 
   final edY = FieldElement();
   final one = FieldElement();
   final montX = FieldElement();
   final montXMinusOne = FieldElement();
   final montXPlusOne = FieldElement();
-  FeFromBytes(montX, publicKey);
+  FeFromBytes(montX, _publicKey);
   FeOne(one);
   FeSub(montXMinusOne, montX, one);
   FeAdd(montXPlusOne, montX, one);
@@ -111,9 +117,8 @@ bool verifySig(Uint8List publicKey, Uint8List message, Uint8List signature) {
   final A_ed = Uint8List(32);
   FeToBytes(A_ed, edY);
 
-  A_ed[31] |= signature[63] & 0x80;
-  signature[63] &= 0x7F;
+  A_ed[31] |= _signature[63] & 0x80;
+  _signature[63] &= 0x7F;
 
-// bool verify(PublicKey publicKey, Uint8List message, Uint8List sig) {
-  return verify(PublicKey(A_ed.toList()), message, signature);
+  return verify(PublicKey(A_ed.toList()), _message, _signature);
 }
