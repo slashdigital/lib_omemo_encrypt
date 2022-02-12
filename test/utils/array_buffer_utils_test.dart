@@ -44,4 +44,74 @@ void main() {
       expect(byteBuffer.lengthInBytes, secretData.length);
     });
   });
+
+  group('Concat method', () {
+    test('Should concat array of two buffers', () {
+      ByteData bd1 = ByteData(4);
+      bd1.setInt8(0, 1);
+      bd1.setInt8(1, 2);
+      bd1.setInt8(2, 3);
+      bd1.setInt8(3, 4);
+
+      ByteData bd2 = ByteData(4);
+      bd2.setInt8(0, 5);
+      bd2.setInt8(1, 6);
+      bd2.setInt8(2, 7);
+      bd2.setInt8(3, 8);
+
+      final expected = Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8]);
+
+      final actual = ArrayBufferUtils.concat([bd1.buffer, bd2.buffer]);
+      print(actual);
+      expect(actual, expected);
+    });
+
+    test('Should concat arrays of different lengths correct', () {
+      ByteData bd1 = ByteData(3);
+      bd1.setInt8(0, 1);
+      bd1.setInt8(1, 2);
+      bd1.setInt8(2, 3);
+
+      ByteData bd2 = ByteData(2);
+      bd2.setInt8(0, 4);
+      bd2.setInt8(1, 5);
+      
+      ByteData bd3 = ByteData(5);
+      bd3.setInt8(0, 6);
+      bd3.setInt8(1, 7);
+      bd3.setInt8(2, 8);
+      bd3.setInt8(3, 9);
+      bd3.setInt8(4, 10);
+
+      final expected = Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+
+      final actual = ArrayBufferUtils.concat([bd1.buffer, bd2.buffer, bd3.buffer]);
+      print(actual);
+      expect(actual, expected);
+    });
+
+    test('Should concat arrays of different lengths correct', () {
+      ByteData bd1 = ByteData(3);
+      bd1.setInt8(0, 1);
+      bd1.setInt8(1, 2);
+      bd1.setInt8(2, 3);
+
+      ByteData bd2 = ByteData(2);
+      bd2.setInt8(0, 4);
+      bd2.setInt8(1, 5);
+      
+      ByteData bd3 = ByteData(5);
+      bd3.setInt8(0, 6);
+      bd3.setInt8(1, 7);
+      bd3.setInt8(2, 8);
+      bd3.setInt8(3, 9);
+      bd3.setInt8(4, 10);
+
+      final expected = Uint8List.fromList([1, 2, 3, 6, 7, 8, 9, 10, 4, 5]);
+
+      final actual = ArrayBufferUtils.concat([bd1.buffer, bd3.buffer, bd2.buffer]);
+      print(actual);
+      expect(actual, expected);
+    });
+  });
 }
