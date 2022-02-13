@@ -9,9 +9,18 @@ import 'package:cryptography/cryptography.dart';
 class Utils {
   static final Random _random = Random.secure();
 
+  // Would the code read cleaner if the methods in this class were named 
+  // 'cryptoRandomString' instead of createCryptoRandomString
+  // or randomBytes() instead of generateRandomBytes(), or 
+  // stringToBytes instead of convertStringToBytes?
+  // Not sure... Just a thought.
+  
   static String createCryptoRandomString([int length = 32]) {
     var values = List<int>.generate(length, (i) => _random.nextInt(256));
 
+    //If the correct length is required the I think this
+    // return base64Url.encode(values).substring(0, length);
+    //will do better, but then the original bytes can not be decoded again.
     return base64Url.encode(values);
   }
 
@@ -22,7 +31,10 @@ class Utils {
 
   static int createRandomSequence({int max = 20536}) {
     // 4294967296
-    final random = Random();
+    final random = Random(); 
+    
+    //Why not use _random.nextInt(max)
+    //Why floor() ? 
     return random.nextInt(max).floor();
   }
 

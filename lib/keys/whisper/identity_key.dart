@@ -24,6 +24,7 @@ class IdentityKey extends WhisperKey
   @override
   Type get type => _key.runtimeType;
 
+  //Feels super wierd that this one is not static :|
   @override
   Future<IdentityKey> deserialize(Uint8List bytes) async {
     final key = await ECDHPublicKey().deserialize(bytes);
