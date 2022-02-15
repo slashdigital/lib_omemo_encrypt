@@ -27,25 +27,25 @@ class MemoryStorage extends StorageInterface {
   }
 
   @override
-  IdentityKeyPair getLocalIdentityKeyPair() {
+  Future<IdentityKeyPair> getLocalIdentityKeyPair() async {
     return localIdentityKeyPair;
   }
 
   @override
-  PreKeyPair getLocalPreKeyPair(int preKeyId) =>
+  Future<PreKeyPair> getLocalPreKeyPair(int preKeyId) async =>
       _findExistingById(localPreKeyPairs, preKeyId)!.item2;
 
   @override
-  SignedPreKeyPair getLocalSignedPreKeyPair(int signedPreKeyId) =>
+  Future<SignedPreKeyPair> getLocalSignedPreKeyPair(int signedPreKeyId) async =>
       _findExistingById(localSignedPreKeyPairs, signedPreKeyId)!.item2;
 
   @override
-  Session getSession() {
+  Future<Session> getSession() {
     throw UnimplementedError();
   }
 
   @override
-  bool hasSession() {
+  Future<bool> hasSession() {
     throw UnimplementedError();
   }
 
@@ -55,23 +55,23 @@ class MemoryStorage extends StorageInterface {
   }
 
   @override
-  bool isRemoteIdentityTrusted() {
+  Future<bool> isRemoteIdentityTrusted() {
     throw UnimplementedError();
   }
 
   @override
-  Session putSession(Session session) {
+  Future<Session> putSession(Session session) {
     throw UnimplementedError();
   }
 
   @override
-  setLocalPreKeyPair(List<PreKeyPair> prekeys) {
+  Future<void> setLocalPreKeyPair(List<PreKeyPair> prekeys) async {
     localPreKeyPairs =
         prekeys.map<Tuple2<int, PreKeyPair>>((e) => Tuple2(e.preKeyId, e));
   }
 
   @override
-  void addLocalSignedPreKeyPair(SignedPreKeyPair signedPreKey) {
+  Future<void> addLocalSignedPreKeyPair(SignedPreKeyPair signedPreKey) async {
     final existing =
         _findExistingById(localSignedPreKeyPairs, signedPreKey.signedPreKeyId);
     if (existing == null) {
