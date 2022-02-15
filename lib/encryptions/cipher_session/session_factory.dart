@@ -86,7 +86,7 @@ class SessionFactory extends SessionFactoryInterface {
     Log.instance
         .d(sessionFactoryTag, 'ourBaseKeyPair : ${await ourBaseKeyPair.bytes}');
     Log.instance.d(sessionFactoryTag,
-        'ourIdentityKeyPair : ${await store.getLocalIdentityKeyPair().keyPair.bytes}');
+        'ourIdentityKeyPair : ${await (await store.getLocalIdentityKeyPair()).keyPair.bytes}');
     Log.instance.d(sessionFactoryTag, 'ourSignedPreKeyPair : null');
     Log.instance.d(sessionFactoryTag,
         'receivingPreKeyBundle.identityKey : ${receivingPreKeyBundle.identityKey}');
@@ -98,7 +98,7 @@ class SessionFactory extends SessionFactoryInterface {
     final aliceParameters = AliceCipherSessionParams(
         sessionVersion: supportsV3 ? 3 : 2,
         ourBaseKeyPair: ourBaseKeyPair,
-        ourIdentityKeyPair: store.getLocalIdentityKeyPair(),
+        ourIdentityKeyPair: await store.getLocalIdentityKeyPair(),
         ourSignedPreKeyPair: null,
         theirIdentityKey: receivingPreKeyBundle.identityKey,
         theirSignedPreKey: theirSignedPreKey,
@@ -180,15 +180,16 @@ class SessionFactory extends SessionFactoryInterface {
       }
     }
 
-    final ourSignedPreKeyPair = store.getLocalSignedPreKeyPair(message.spkId);
-    final preKeyPair = store.getLocalPreKeyPair(message.pkId);
+    final ourSignedPreKeyPair =
+        await store.getLocalSignedPreKeyPair(message.spkId);
+    final preKeyPair = await store.getLocalPreKeyPair(message.pkId);
 
     Log.instance.d(sessionFactoryTag,
         'sessionVersion: ${preKeyWhisperMessage.version.current}');
     Log.instance.d(sessionFactoryTag, 'theirBaseKey/prekey: ${message.ek}');
     Log.instance.d(sessionFactoryTag, 'theirIdentityKey: ${message.ik}');
     Log.instance.d(sessionFactoryTag,
-        'ourIdentityKeyPair: ${await store.getLocalIdentityKeyPair().keyPair.publicKeyBytes}');
+        'ourIdentityKeyPair: ${await (await store.getLocalIdentityKeyPair()).keyPair.publicKeyBytes}');
     Log.instance
         .d(sessionFactoryTag, 'ourSignedPreKeyPair: $ourSignedPreKeyPair');
     Log.instance
@@ -201,7 +202,7 @@ class SessionFactory extends SessionFactoryInterface {
             PreKey.create(message.pkId, ECDHPublicKey.fromBytes(message.ek)),
         theirIdentityKey:
             IdentityKey.create(key: ECDHPublicKey.fromBytes(message.ik)),
-        ourIdentityKeyPair: store.getLocalIdentityKeyPair(),
+        ourIdentityKeyPair: await store.getLocalIdentityKeyPair(),
         ourSignedPreKeyPair: ourSignedPreKeyPair,
         ourRatchetKeyPair: ourSignedPreKeyPair,
         ourOneTimePreKeyPair: preKeyPair);

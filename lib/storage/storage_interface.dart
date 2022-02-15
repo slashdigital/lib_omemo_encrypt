@@ -5,16 +5,16 @@ import 'package:lib_omemo_encrypt/sessions/session.dart';
 
 abstract class StorageInterface {
   initKeys();
-  IdentityKeyPair getLocalIdentityKeyPair();
+  Future<IdentityKeyPair> getLocalIdentityKeyPair();
   Future<String> getLocalRegistrationId();
-  void addLocalSignedPreKeyPair(SignedPreKeyPair signedPreKey);
-  SignedPreKeyPair getLocalSignedPreKeyPair(int signedPreKeyId);
-  PreKeyPair getLocalPreKeyPair(int preKeyId);
-  void setLocalPreKeyPair(List<PreKeyPair> prekeys);
-  bool isRemoteIdentityTrusted();
-  bool hasSession();
-  Session getSession();
-  Session putSession(Session session);
+  Future<void> addLocalSignedPreKeyPair(SignedPreKeyPair signedPreKey);
+  Future<SignedPreKeyPair> getLocalSignedPreKeyPair(int signedPreKeyId);
+  Future<PreKeyPair> getLocalPreKeyPair(int preKeyId);
+  Future<void> setLocalPreKeyPair(List<PreKeyPair> prekeys);
+  Future<bool> isRemoteIdentityTrusted();
+  Future<bool> hasSession();
+  Future<Session> getSession();
+  Future<Session> putSession(Session session);
 
   const StorageInterface();
 }
