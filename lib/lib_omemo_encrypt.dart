@@ -5,3 +5,5 @@ export 'package:lib_omemo_encrypt/encryptions/axolotl/axolotl.dart';
 export 'package:lib_omemo_encrypt/encryptions/cipher_session/session_factory.dart';
 export 'package:lib_omemo_encrypt/sessions/session.dart';
 export 'package:lib_omemo_encrypt/storage/storage_interface.dart';
+export 'package:lib_omemo_encrypt/keys/bundle/prekey_bundle.dart';
+export 'package:lib_omemo_encrypt/keys/bundle/prekey_package.dart';
