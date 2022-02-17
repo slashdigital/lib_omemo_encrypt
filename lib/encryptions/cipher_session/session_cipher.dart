@@ -6,6 +6,7 @@ import 'package:crypto/crypto.dart' as crypto;
 import 'package:lib_omemo_encrypt/encryptions/axolotl/axolotl.dart';
 import 'package:lib_omemo_encrypt/encryptions/cbc/cbc.dart';
 import 'package:lib_omemo_encrypt/encryptions/cipher_session/session_cipher_interface.dart';
+import 'package:lib_omemo_encrypt/exceptions/old_message_counter_exception.dart';
 import 'package:lib_omemo_encrypt/keys/ecc/publickey.dart';
 import 'package:lib_omemo_encrypt/messages/message.dart';
 import 'package:lib_omemo_encrypt/messages/omemo_message.dart';
@@ -272,12 +273,12 @@ class SessionCipher extends SessionCipherInterface {
       // The message is an old message that has been delivered out of order. We should still have the message
       // key cached unless this is a duplicate message that we've seen before.
       var cachedMessageKeys = chain.messageKeys[counter];
-      if (cachedMessageKeys != null) {
-        throw Exception("Received message with old counter");
+      if (cachedMessageKeys == null) {
+        throw OldMessageCounterException("Received message with old counter");
       }
       // We don't want to be able to decrypt this message again, for forward secrecy.
       chain.messageKeys.remove(cachedMessageKeys);
-      return cachedMessageKeys!;
+      return cachedMessageKeys;
     } else {
       // Otherwise, the message is a new message in the chain and we must click the sub ratchet forwards.
       if (counter - chain.index > maximumMissedMessages) {

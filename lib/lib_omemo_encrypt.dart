@@ -18,3 +18,5 @@ export 'package:lib_omemo_encrypt/keys/bundle/receiving_prekey_bundle.dart';
 export 'package:lib_omemo_encrypt/lib_omemo_encrypt.dart';
 export 'package:lib_omemo_encrypt/sessions/session_messaging.dart';
 export 'package:lib_omemo_encrypt/sessions/session_user.dart';
+
+export 'package:lib_omemo_encrypt/exceptions/old_message_counter_exception.dart';
