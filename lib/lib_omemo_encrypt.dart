@@ -7,3 +7,7 @@ export 'package:lib_omemo_encrypt/sessions/session.dart';
 export 'package:lib_omemo_encrypt/storage/storage_interface.dart';
 export 'package:lib_omemo_encrypt/keys/bundle/prekey_bundle.dart';
 export 'package:lib_omemo_encrypt/keys/bundle/prekey_package.dart';
+
+export 'package:lib_omemo_encrypt/keys/whisper/identity_key.dart';
+export 'package:lib_omemo_encrypt/keys/whisper/prekey.dart';
+export 'package:lib_omemo_encrypt/keys/whisper/signed_prekey.dart';
