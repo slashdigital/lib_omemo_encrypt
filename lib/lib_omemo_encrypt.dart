@@ -11,3 +11,4 @@ export 'package:lib_omemo_encrypt/keys/bundle/prekey_package.dart';
 export 'package:lib_omemo_encrypt/keys/whisper/identity_key.dart';
 export 'package:lib_omemo_encrypt/keys/whisper/prekey.dart';
 export 'package:lib_omemo_encrypt/keys/whisper/signed_prekey.dart';
+export 'package:lib_omemo_encrypt/keys/whisper/identity_keypair.dart';
