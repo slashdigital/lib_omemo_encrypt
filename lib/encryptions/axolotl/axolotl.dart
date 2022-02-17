@@ -85,6 +85,8 @@ class Axololt extends AxololtInterface {
     const signedPreKeyPairId = 1;
     final signedPreKey = await generateSignedPreKey(signedPreKeyPairId);
     final signature = await generateSignature(identityKeyPair, signedPreKey);
+    final preKeys =
+        await generatePreKeys(Utils.createRandomSequence(), preKeyCount);
     if (kDebugMode) {
       print(
           'New Signature Generation: $signature for ${await (await identityKeyPair.identityKey).key.bytes}');
@@ -93,8 +95,7 @@ class Axololt extends AxololtInterface {
     return PreKeyPackage(
         identityKeyPair: identityKeyPair,
         registrationId: generateRegistrationId(),
-        preKeys:
-            await generatePreKeys(Utils.createRandomSequence(), preKeyCount),
+        preKeys: preKeys,
         signedPreKeyPair: signedPreKey,
         signedPreKeyPairId: signedPreKeyPairId,
         signature: signature);
