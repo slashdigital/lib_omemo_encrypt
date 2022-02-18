@@ -5,7 +5,7 @@ homepage: www.slash.co
 
 environment:
   sdk: ">=2.15.0 <3.0.0"
-  flutter: ">=1.17.0"
+  flutter: ">=2.10.1"
 
 dependencies:
   flutter:
@@ -17,6 +17,7 @@ dependencies:
   pointycastle: ^3.5.0
   equatable: ^2.0.3
   ed25519_edwards: ^0.3.1
+  x25519: ^0.1.1
 
 dev_dependencies:
   flutter_test:
