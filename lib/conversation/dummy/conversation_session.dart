@@ -17,7 +17,6 @@ import 'package:lib_omemo_encrypt/sessions/session_user.dart';
 import 'package:lib_omemo_encrypt/storage/in-memory/memory_storage.dart';
 import 'package:lib_omemo_encrypt/utils/log.dart';
 import 'package:lib_omemo_encrypt/utils/utils.dart';
-import 'package:tuple/tuple.dart';
 
 const numOfPreKeysSample = 200;
 
@@ -192,14 +191,14 @@ class ConversationSession {
       SessionMessaging friendIdentifier, EncryptedMessage encryptedMsg) async {
     final sessionDefinition = friendSessions[friendIdentifier]!;
     if (encryptedMsg.isPreKeyWhisperMessage) {
-      final _ciperSession = await sessionDefinition.sessionFactory
+      final _cipherSession = await sessionDefinition.sessionFactory
           .createSessionFromPreKeyWhisperMessage(
               sessionDefinition.session, encryptedMsg.body);
-      final receiverSession = _ciperSession.session;
+      final receiverSession = _cipherSession.session;
 
-      final decrypedMessage = await sessionDefinition.sessionCipher
+      final decryptedMessage = await sessionDefinition.sessionCipher
           .decryptPreKeyWhisperMessage(receiverSession, encryptedMsg.body);
-      final message = utf8.decode(decrypedMessage.plainText);
+      final message = utf8.decode(decryptedMessage.plainText);
       final logMessage =
           '(${self.name} | Device: ${self.deviceId}): Receive - $message  ';
       Log.instance.d(tag, logMessage);
@@ -211,16 +210,16 @@ class ConversationSession {
         MapEntry<SessionMessaging, ConversationSessionDefinition>(
             friendIdentifier,
             sessionDefinition.copyWith(
-              session: decrypedMessage.session,
+              session: decryptedMessage.session,
             ))
       ]);
 
-      return decrypedMessage;
+      return decryptedMessage;
     } else {
-      final decrypedMessage = await sessionDefinition.sessionCipher
+      final decryptedMessage = await sessionDefinition.sessionCipher
           .decryptWhisperMessage(sessionDefinition.session, encryptedMsg.body);
 
-      final message = utf8.decode(decrypedMessage.plainText);
+      final message = utf8.decode(decryptedMessage.plainText);
 
       final logMessage =
           '(${self.name} | Device: ${self.deviceId}): Receive - $message  ';
@@ -234,11 +233,11 @@ class ConversationSession {
         MapEntry<SessionMessaging, ConversationSessionDefinition>(
             friendIdentifier,
             sessionDefinition.copyWith(
-              session: decrypedMessage.session,
+              session: decryptedMessage.session,
             ))
       ]);
 
-      return decrypedMessage;
+      return decryptedMessage;
     }
   }
 }

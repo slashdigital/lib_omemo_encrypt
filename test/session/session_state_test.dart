@@ -11,7 +11,6 @@ import 'package:lib_omemo_encrypt/ratchet/publickey_and_chain.dart';
 import 'package:lib_omemo_encrypt/sessions/session_messaging.dart';
 import 'package:lib_omemo_encrypt/sessions/session_state.dart';
 import 'package:lib_omemo_encrypt/sessions/session_user.dart';
-import 'package:lib_omemo_encrypt/utils/utils.dart';
 
 void main() {
   final algorithm = X25519();
@@ -35,7 +34,7 @@ void main() {
             Uint8List.fromList(Utils.convertStringToBytes('chainKeys_$i')),
             index: 0,
             messageKeysList: [messageKey, messageKeyNext]);
-        final recievingChain = Chain.create(
+        final receivingChain = Chain.create(
             Uint8List.fromList(Utils.convertStringToBytes('chainKeys_$i')),
             index: 0,
             messageKeysList: [messageKey, messageKeyNext]);
@@ -44,7 +43,7 @@ void main() {
         final publicKey = await keyPair.publicKey;
 
         final publicKeyAndChain = PublicKeyAndChain.create(
-            ephemeralPublicKey: publicKey, chain: recievingChain);
+            ephemeralPublicKey: publicKey, chain: receivingChain);
 
         final remoteIdentityKeyPair = IdentityKeyPair.create(
             key: ECDHKeyPair.create(await algorithm.newKeyPair()));
