@@ -17,7 +17,7 @@ void main() async {
       expect(await inMemoryStorage.getLocalRegistrationId(), registrationId);
     });
     test('should get the local identity key pair id', () async {
-      expect(inMemoryStorage.getLocalIdentityKeyPair(), identityKeyPair);
+      expect(await inMemoryStorage.getLocalIdentityKeyPair(), identityKeyPair);
     });
   });
 }

@@ -26,7 +26,9 @@ void main() {
           index: 0,
           messageKeysList: [messageKey, messageKeyNext]);
 
-      final keyPair = ECDHKeyPair.create(await algorithm.newKeyPair());
+      final xKeyPair = await algorithm.newKeyPair();
+      final keyPair =
+          ECDHKeyPair.createPair(xKeyPair, await xKeyPair.extractPublicKey());
       final publicKey = await keyPair.publicKey;
 
       final publicKeyAndChain =

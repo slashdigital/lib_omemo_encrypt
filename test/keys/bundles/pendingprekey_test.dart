@@ -7,7 +7,9 @@ void main() {
   final algorithm = X25519();
   group('keys/bundle/pending_pre_key.dart', () {
     test('Should serialize pending pre key pair and parse it back', () async {
-      final keyPair = ECDHKeyPair.create(await algorithm.newKeyPair());
+      final xKeyPair = await algorithm.newKeyPair();
+      final keyPair =
+          ECDHKeyPair.createPair(xKeyPair, await xKeyPair.extractPublicKey());
       final publicKey = await keyPair.publicKey;
       final pendingPreKey =
           PendingPreKey.create(signedPreKeyId: 1, preKeyId: 2, key: publicKey);
