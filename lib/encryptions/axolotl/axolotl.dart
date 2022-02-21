@@ -2,13 +2,14 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter/foundation.dart';
+
+import 'package:x25519/x25519.dart' as x25519;
 import 'package:lib_omemo_encrypt/encryptions/axolotl/axolotl_interface.dart';
 import 'package:lib_omemo_encrypt/encryptions/axolotl/ed25519.dart';
 import 'package:lib_omemo_encrypt/keys/bundle/prekey_package.dart';
 import 'package:lib_omemo_encrypt/keys/ecc/keypair.dart';
 import 'package:lib_omemo_encrypt/keys/ecc/publickey.dart';
-// import 'package:lib_omemo_encrypt/keys/prekey.dart';
-// import 'package:lib_omemo_encrypt/keys/bundle/prekey_package.dart';
+
 import 'package:lib_omemo_encrypt/keys/whisper/identity_keypair.dart';
 import 'package:lib_omemo_encrypt/keys/whisper/prekey.dart';
 import 'package:lib_omemo_encrypt/keys/whisper/signed_prekey.dart';
@@ -19,7 +20,13 @@ class Axololt extends AxololtInterface {
   final algorithmX25519 = X25519();
   @override
   Future<ECDHKeyPair> generateKeyPair() async {
-    return ECDHKeyPair.create(await algorithmX25519.newKeyPair());
+    final xKeyPair = x25519.generateKeyPair();
+    final pubKey =
+        SimplePublicKey(xKeyPair.publicKey, type: KeyPairType.x25519);
+    final SimpleKeyPairData keyData = SimpleKeyPairData(xKeyPair.privateKey,
+        publicKey: pubKey, type: KeyPairType.x25519);
+    return ECDHKeyPair.createPair(keyData, pubKey);
+    // return ECDHKeyPair.create(await algorithmX25519.newKeyPair());
   }
 
   @override
@@ -85,6 +92,8 @@ class Axololt extends AxololtInterface {
     const signedPreKeyPairId = 1;
     final signedPreKey = await generateSignedPreKey(signedPreKeyPairId);
     final signature = await generateSignature(identityKeyPair, signedPreKey);
+    final preKeys =
+        await generatePreKeys(Utils.createRandomSequence(), preKeyCount);
     if (kDebugMode) {
       print(
           'New Signature Generation: $signature for ${await (await identityKeyPair.identityKey).key.bytes}');
@@ -93,8 +102,7 @@ class Axololt extends AxololtInterface {
     return PreKeyPackage(
         identityKeyPair: identityKeyPair,
         registrationId: generateRegistrationId(),
-        preKeys:
-            await generatePreKeys(Utils.createRandomSequence(), preKeyCount),
+        preKeys: preKeys,
         signedPreKeyPair: signedPreKey,
         signedPreKeyPairId: signedPreKeyPairId,
         signature: signature);

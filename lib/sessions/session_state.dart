@@ -20,7 +20,6 @@ class SessionState
   late int sessionVersion;
   late IdentityKey remoteIdentityKey;
   late IdentityKey localIdentityKey;
-  late String localRegistrationId;
   // Ratchet parameters
   late Uint8List rootKey;
   late Chain sendingChain;
@@ -31,6 +30,7 @@ class SessionState
   // TODO: define when this is in used?
   int previousCounter = 0;
   PendingPreKey? pending;
+  String localRegistrationId = '';
   // Not in clone
   PreKey? theirBaseKey;
 
