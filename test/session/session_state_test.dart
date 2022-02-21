@@ -39,20 +39,27 @@ void main() {
             index: 0,
             messageKeysList: [messageKey, messageKeyNext]);
 
-        final keyPair = ECDHKeyPair.create(await algorithm.newKeyPair());
+        final xKeyPair = await algorithm.newKeyPair();
+        final keyPair =
+            ECDHKeyPair.createPair(xKeyPair, await xKeyPair.extractPublicKey());
         final publicKey = await keyPair.publicKey;
 
         final publicKeyAndChain = PublicKeyAndChain.create(
             ephemeralPublicKey: publicKey, chain: receivingChain);
 
+        final xRemoteKeyPair = await algorithm.newKeyPair();
         final remoteIdentityKeyPair = IdentityKeyPair.create(
-            key: ECDHKeyPair.create(await algorithm.newKeyPair()));
+            key: ECDHKeyPair.createPair(
+                xRemoteKeyPair, await xRemoteKeyPair.extractPublicKey()));
+        final xLocalKeyPair = await algorithm.newKeyPair();
         final localIdentityKeyPair = IdentityKeyPair.create(
-            key: ECDHKeyPair.create(await algorithm.newKeyPair()));
+            key: ECDHKeyPair.createPair(
+                xLocalKeyPair, await xLocalKeyPair.extractPublicKey()));
         final rootKey =
             Uint8List.fromList(Utils.convertStringToBytes('root_key_$i'));
-        final senderRatchetKeyPair =
-            ECDHKeyPair.create(await algorithm.newKeyPair());
+        final xSenderKeyPair = await algorithm.newKeyPair();
+        final senderRatchetKeyPair = ECDHKeyPair.createPair(
+            xSenderKeyPair, await xSenderKeyPair.extractPublicKey());
 
         final sessionState = SessionState.create(
             sessionVersion: 3,

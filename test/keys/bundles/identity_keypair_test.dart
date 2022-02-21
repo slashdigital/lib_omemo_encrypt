@@ -7,7 +7,9 @@ void main() {
   final algorithm = X25519();
   group('keys/bundle/identity_keypair.dart', () {
     test('Should serialize identity and parse it back', () async {
-      final keyPair = ECDHKeyPair.create(await algorithm.newKeyPair());
+      final xKeyPair = await algorithm.newKeyPair();
+      final keyPair =
+          ECDHKeyPair.createPair(xKeyPair, await xKeyPair.extractPublicKey());
       final identityKeyPair = IdentityKeyPair.create(key: keyPair);
       final serialized = await identityKeyPair.serialize();
 

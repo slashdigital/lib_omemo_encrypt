@@ -40,12 +40,19 @@ class MemoryStorage extends StorageInterface {
       _findExistingById(localSignedPreKeyPairs, signedPreKeyId)!.item2;
 
   @override
-  Future<Session> getSession() {
+  Future<Session> getSession(
+      {required bool isGroup,
+      required String groupJabberId,
+      required String buddyJid,
+      required String deviceId}) {
     throw UnimplementedError();
   }
 
   @override
-  Future<bool> hasSession() {
+  Future<bool> hasSession(
+      {required bool isGroup,
+      required String groupJabberId,
+      required String buddyJid}) {
     throw UnimplementedError();
   }
 
@@ -60,7 +67,14 @@ class MemoryStorage extends StorageInterface {
   }
 
   @override
-  Future<Session> putSession(Session session) {
+  Future<Session> putSession(
+      {required Session session,
+      required int chatId,
+      required bool isGroup,
+      required String buddyJid, // Required to have buddyJid
+      required String deviceId, // Required to have deviceid with buddyJid
+      required String groupJabberId, // can be '' if not group
+      required List<String> participants}) {
     throw UnimplementedError();
   }
 
@@ -78,5 +92,13 @@ class MemoryStorage extends StorageInterface {
       localSignedPreKeyPairs.add(Tuple2<int, SignedPreKeyPair>(
           signedPreKey.signedPreKeyId, signedPreKey));
     }
+  }
+
+  @override
+  Future<List> getSessions(
+      {required bool isGroup,
+      required String groupJabberId,
+      required String buddyJid}) {
+    throw UnimplementedError();
   }
 }

@@ -12,9 +12,27 @@ abstract class StorageInterface {
   Future<PreKeyPair> getLocalPreKeyPair(int preKeyId);
   Future<void> setLocalPreKeyPair(List<PreKeyPair> prekeys);
   Future<bool> isRemoteIdentityTrusted();
-  Future<bool> hasSession();
-  Future<Session> getSession();
-  Future<Session> putSession(Session session);
+  Future<bool> hasSession(
+      {required bool isGroup,
+      required String groupJabberId,
+      required String buddyJid});
+  Future<dynamic> getSession(
+      {required bool isGroup,
+      required String groupJabberId,
+      required String buddyJid,
+      required String deviceId});
+  Future<List<dynamic>> getSessions(
+      {required bool isGroup,
+      required String groupJabberId,
+      required String buddyJid});
+  Future<dynamic> putSession(
+      {required Session session,
+      required int chatId,
+      required bool isGroup,
+      required String buddyJid, // Required to have buddyJid
+      required String deviceId, // Required to have deviceid with buddyJid
+      required String groupJabberId, // can be '' if not group
+      required List<String> participants});
 
   const StorageInterface();
 }

@@ -8,7 +8,9 @@ void main() {
   final algorithm = X25519();
   group('keys/bundle/signed_pre_key.dart', () {
     test('Should serialize signed pre key pair and parse it back', () async {
-      final keyPair = ECDHKeyPair.create(await algorithm.newKeyPair());
+      final xKeyPair = await algorithm.newKeyPair();
+      final keyPair =
+          ECDHKeyPair.createPair(xKeyPair, await xKeyPair.extractPublicKey());
       final preKeyPair =
           SignedPreKeyPair.create(signedPreKeyId: 1, key: keyPair);
       final serialized = await preKeyPair.serialize();
@@ -20,7 +22,9 @@ void main() {
     });
     test('Should serialize signed pre key (public) and parse it back',
         () async {
-      final keyPair = ECDHKeyPair.create(await algorithm.newKeyPair());
+      final xKeyPair = await algorithm.newKeyPair();
+      final keyPair =
+          ECDHKeyPair.createPair(xKeyPair, await xKeyPair.extractPublicKey());
       final preKeyPair =
           SignedPreKeyPair.create(signedPreKeyId: 1, key: keyPair);
       final signedPreKey = await preKeyPair.signedPreKey;

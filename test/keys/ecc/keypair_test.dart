@@ -6,7 +6,9 @@ void main() {
   final algorithm = X25519();
   group('keys/ecc/keypair.dart', () {
     test('Should serialize and parse it back', () async {
-      final keyPair = ECDHKeyPair.create(await algorithm.newKeyPair());
+      final xKeyPair = await algorithm.newKeyPair();
+      final keyPair =
+          ECDHKeyPair.createPair(xKeyPair, await xKeyPair.extractPublicKey());
       final serialized = await keyPair.serialize();
       final parsedKeyPair = await ECDHKeyPair().deserialize(serialized);
 
