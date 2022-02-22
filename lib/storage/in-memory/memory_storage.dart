@@ -69,7 +69,6 @@ class MemoryStorage extends StorageInterface {
   @override
   Future<Session> putSession(
       {required Session session,
-      required int chatId,
       required bool isGroup,
       required String buddyJid, // Required to have buddyJid
       required String deviceId, // Required to have deviceid with buddyJid
