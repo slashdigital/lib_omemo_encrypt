@@ -107,13 +107,11 @@ class SessionFactory extends SessionFactoryInterface {
         theirOneTimePreKey: supportsV3 ? receivingPreKeyBundle.preKey : null);
 
     final sessionState = await initializeAliceSession(aliceParameters);
-    print('Session state1');
     sessionState.pending = PendingPreKey.create(
         preKeyId: supportsV3 ? receivingPreKeyBundle.preKeyId : noPreKeyId,
         key: await ourBaseKeyPair.publicKey,
         signedPreKeyId: receivingPreKeyBundle.signedPreKeyId);
     sessionState.localRegistrationId = await store.getLocalRegistrationId();
-    print('Session state2');
 
     var session = Session.create(sessionMessagingIdentity);
     session.addState(sessionState);
