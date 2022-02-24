@@ -32,9 +32,10 @@ class SessionCipherState {
   final Session session;
   late SimplePublicKey identityKey;
   late String registrationId;
+  late String pkId;
 
-  SessionCipherState(
-      this.session, List<int> identityKey, List<int> registrationId) {
+  SessionCipherState(this.session, List<int> identityKey,
+      List<int> registrationId, this.pkId) {
     this.identityKey = SimplePublicKey(identityKey, type: KeyPairType.x25519);
     this.registrationId = base64Url.encode(registrationId);
   }
@@ -176,8 +177,8 @@ class SessionFactory extends SessionFactoryInterface {
         final theirBaseKeyBytes =
             await cachedSessionState.theirBaseKey!.key.bytes;
         if (theirBaseKeyBytes == message.ek) {
-          return SessionCipherState(
-              session, message.ik, message.registrationId);
+          return SessionCipherState(session, message.ik, message.registrationId,
+              message.pkId.toString());
         }
       }
     }
@@ -215,8 +216,8 @@ class SessionFactory extends SessionFactoryInterface {
     final clonedSession = Session.create(sessionMessagingIdentity);
     clonedSession.clone(session.states);
     clonedSession.addState(sessionState);
-    return SessionCipherState(
-        clonedSession, message.ik, message.registrationId);
+    return SessionCipherState(clonedSession, message.ik, message.registrationId,
+        message.pkId.toString());
   }
 
   @override
