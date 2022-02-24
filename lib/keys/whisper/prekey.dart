@@ -75,7 +75,6 @@ class PreKey extends WhisperKey
     final proto = local_proto.LocalPreKey.fromBuffer(bytes);
     _key = await ECDHPublicKey().deserialize(proto.publicKey.writeToBuffer());
     preKeyId = proto.preKeyId;
-    PreKey().deserialize(bytes);
     return PreKey.create(preKeyId, key);
   }
 
