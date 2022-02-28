@@ -1,4 +1,11 @@
 # Dart Library for Signal/Omemo-like encryption 
+
+## Supported XEP and Version:
+
+* Supported for [XEP-0384](https://xmpp.org/extensions/xep-0384.html) version 0.8.3
+* No support for [XEP-0454](https://xmpp.org/extensions/xep-0454.html) yet
+
+
 ## End-to-end Encryptions
 
 * OMEMO 1-1 End-to-end Encryption with Double Ratcheting
