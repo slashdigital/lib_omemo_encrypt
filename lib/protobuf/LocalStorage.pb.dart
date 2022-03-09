@@ -479,6 +479,7 @@ class LocalMessageKey extends $pb.GeneratedMessage {
     ..a<$core.List<$core.int>>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'cipherKey', $pb.PbFieldType.OY, protoName: 'cipherKey')
     ..a<$core.List<$core.int>>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'macKey', $pb.PbFieldType.OY, protoName: 'macKey')
     ..a<$core.List<$core.int>>(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'iv', $pb.PbFieldType.OY)
+    ..a<$core.int>(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'index', $pb.PbFieldType.OU3)
     ..hasRequiredFields = false
   ;
 
@@ -487,6 +488,7 @@ class LocalMessageKey extends $pb.GeneratedMessage {
     $core.List<$core.int>? cipherKey,
     $core.List<$core.int>? macKey,
     $core.List<$core.int>? iv,
+    $core.int? index,
   }) {
     final _result = create();
     if (cipherKey != null) {
@@ -497,6 +499,9 @@ class LocalMessageKey extends $pb.GeneratedMessage {
     }
     if (iv != null) {
       _result.iv = iv;
+    }
+    if (index != null) {
+      _result.index = index;
     }
     return _result;
   }
@@ -547,6 +552,15 @@ class LocalMessageKey extends $pb.GeneratedMessage {
   $core.bool hasIv() => $_has(2);
   @$pb.TagNumber(3)
   void clearIv() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get index => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set index($core.int v) { $_setUnsignedInt32(3, v); }
+  @$pb.TagNumber(4)
+  $core.bool hasIndex() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearIndex() => clearField(4);
 }
 
 class LocalChain extends $pb.GeneratedMessage {

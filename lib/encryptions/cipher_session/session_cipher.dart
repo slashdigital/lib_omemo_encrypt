@@ -76,8 +76,9 @@ class SessionCipher extends SessionCipherInterface {
   @override
   Future<Uint8List> createWhisperMessage(
       Session session, List<int> paddedMessage) async {
-    final messageKeys = await ratchet
-        .deriveMessageKeys(session.mostRecentState().sendingChain.key);
+    final sendingKey = session.mostRecentState().sendingChain;
+    final messageKeys =
+        await ratchet.deriveMessageKeys(sendingKey.key, sendingKey.index);
 
     // AES-CBC with 128 bit keys and HMAC-SHA256 authentication.
     final algorithm = AesCbc.with256bits(
@@ -272,13 +273,16 @@ class SessionCipher extends SessionCipherInterface {
     if (chain.index > counter) {
       // The message is an old message that has been delivered out of order. We should still have the message
       // key cached unless this is a duplicate message that we've seen before.
-      var cachedMessageKeys = chain.messageKeys[counter];
-      if (cachedMessageKeys == null) {
+      final existingKeyIndex = chain.messageKeys
+          .indexWhere((messageKeyItem) => messageKeyItem!.index == counter);
+
+      if (existingKeyIndex == -1) {
         throw OldMessageCounterException("Received message with old counter");
       }
+      final cachedMessageKeys = chain.messageKeys[existingKeyIndex];
       // We don't want to be able to decrypt this message again, for forward secrecy.
-      chain.messageKeys.remove(cachedMessageKeys);
-      return cachedMessageKeys;
+      chain.messageKeys.removeAt(existingKeyIndex);
+      return cachedMessageKeys!;
     } else {
       // Otherwise, the message is a new message in the chain and we must click the sub ratchet forwards.
       if (counter - chain.index > maximumMissedMessages) {
@@ -287,15 +291,15 @@ class SessionCipher extends SessionCipherInterface {
       while (chain.index < counter) {
         // Some messages have not yet been delivered ("skipped") and so we need to catch the sub ratchet up
         // while keeping the message keys for when the messages are eventually delivered.
-        chain.messageKeys
-            .insert(chain.index, await ratchet.deriveMessageKeys(chain.key));
+        chain.messageKeys.insert(chain.index,
+            await ratchet.deriveMessageKeys(chain.key, chain.index));
         await ratchet.clickSubRatchet(chain);
       }
       // As we have received the message, we should click the sub ratchet forwards so we can't decrypt it again
 
       Log.instance.d(tag, 'Before - _chain index: ${chain.index}');
       Log.instance.d(tag, 'Before - _chain key: ${chain.key}');
-      var messageKeys = await ratchet.deriveMessageKeys(chain.key);
+      var messageKeys = await ratchet.deriveMessageKeys(chain.key, chain.index);
       await ratchet.clickSubRatchet(chain);
       // Set next chain
       sessionState.setReceivingChain(theirEphemeralPublicKey, chain);

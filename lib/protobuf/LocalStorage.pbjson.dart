@@ -94,11 +94,12 @@ const LocalMessageKey$json = const {
     const {'1': 'cipherKey', '3': 1, '4': 1, '5': 12, '10': 'cipherKey'},
     const {'1': 'macKey', '3': 2, '4': 1, '5': 12, '10': 'macKey'},
     const {'1': 'iv', '3': 3, '4': 1, '5': 12, '10': 'iv'},
+    const {'1': 'index', '3': 4, '4': 1, '5': 13, '10': 'index'},
   ],
 };
 
 /// Descriptor for `LocalMessageKey`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List localMessageKeyDescriptor = $convert.base64Decode('Cg9Mb2NhbE1lc3NhZ2VLZXkSHAoJY2lwaGVyS2V5GAEgASgMUgljaXBoZXJLZXkSFgoGbWFjS2V5GAIgASgMUgZtYWNLZXkSDgoCaXYYAyABKAxSAml2');
+final $typed_data.Uint8List localMessageKeyDescriptor = $convert.base64Decode('Cg9Mb2NhbE1lc3NhZ2VLZXkSHAoJY2lwaGVyS2V5GAEgASgMUgljaXBoZXJLZXkSFgoGbWFjS2V5GAIgASgMUgZtYWNLZXkSDgoCaXYYAyABKAxSAml2EhQKBWluZGV4GAQgASgNUgVpbmRleA==');
 @$core.Deprecated('Use localChainDescriptor instead')
 const LocalChain$json = const {
   '1': 'LocalChain',

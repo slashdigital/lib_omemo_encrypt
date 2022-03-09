@@ -7,11 +7,15 @@ class MessageKey
   late Uint8List cipherKey;
   late Uint8List macKey;
   late Uint8List iv;
+  late int index;
 
   MessageKey();
 
   MessageKey.create(
-      {required this.cipherKey, required this.macKey, required this.iv});
+      {required this.cipherKey,
+      required this.macKey,
+      required this.iv,
+      required this.index});
 
   @override
   Future<MessageKey> deserialize(Uint8List bytes) async {
@@ -19,7 +23,8 @@ class MessageKey
     return MessageKey.create(
         cipherKey: Uint8List.fromList(proto.cipherKey),
         macKey: Uint8List.fromList(proto.macKey),
-        iv: Uint8List.fromList(proto.iv));
+        iv: Uint8List.fromList(proto.iv),
+        index: index);
   }
 
   @override
@@ -30,6 +35,6 @@ class MessageKey
   @override
   Future<local_proto.LocalMessageKey> serializeToProto() async {
     return local_proto.LocalMessageKey(
-        cipherKey: cipherKey, iv: iv, macKey: macKey);
+        cipherKey: cipherKey, iv: iv, macKey: macKey, index: index);
   }
 }

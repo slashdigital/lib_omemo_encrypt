@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:lib_omemo_encrypt/ratchet/message_key.dart';
@@ -7,6 +8,7 @@ import 'package:lib_omemo_encrypt/serialization/serialization_interface.dart';
 class Chain implements Serializable<Chain, local_proto.LocalChain> {
   late Uint8List key;
   late int index = 0;
+
   List<MessageKey?> messageKeys = [];
 
   Chain();

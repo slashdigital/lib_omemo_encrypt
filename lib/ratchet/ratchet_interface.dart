@@ -76,7 +76,8 @@ abstract class RatchetInterface {
       ECDHPublicKey theirEphemeralPublicKey,
       ECDHKeyPair ourEphemeralPrivateKey);
   Future<Chain> clickSubRatchet(Chain chain);
-  Future<MessageKey> deriveMessageKeys(Uint8List chainKey);
+  Future<MessageKey> deriveMessageKeys(
+      Uint8List chainKey, int indexChainMessageKey);
   Future<Uint8List> deriveMessageKey(Uint8List chainKey);
   Future<Uint8List> deriveNextChainKey(Uint8List chainKey);
 }

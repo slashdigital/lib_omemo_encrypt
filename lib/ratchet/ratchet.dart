@@ -61,7 +61,8 @@ class Ratchet extends RatchetInterface {
   }
 
   @override
-  Future<MessageKey> deriveMessageKeys(Uint8List chainKey) async {
+  Future<MessageKey> deriveMessageKeys(
+      Uint8List chainKey, int indexChainMessageKey) async {
     final messageKey = await deriveMessageKey(chainKey);
 
     final keyMaterialBytes = algorithm.deriveSecrets(
@@ -75,7 +76,10 @@ class Ratchet extends RatchetInterface {
     final ivBytes =
         keyMaterialBytes.sublist(cipherKeyByteCount + macKeyByteCount);
     return MessageKey.create(
-        cipherKey: ciperKeyBytes, macKey: macKeyBytes, iv: ivBytes);
+        cipherKey: ciperKeyBytes,
+        macKey: macKeyBytes,
+        iv: ivBytes,
+        index: indexChainMessageKey);
   }
 
   @override

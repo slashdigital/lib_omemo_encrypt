@@ -40,6 +40,7 @@ message LocalMessageKey {
   bytes cipherKey = 1;
   bytes macKey = 2;
   bytes iv = 3;
+  uint32 index = 4;
 }
 
 message LocalChain {
