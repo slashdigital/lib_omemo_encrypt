@@ -24,7 +24,7 @@ class MessageKey
         cipherKey: Uint8List.fromList(proto.cipherKey),
         macKey: Uint8List.fromList(proto.macKey),
         iv: Uint8List.fromList(proto.iv),
-        index: index);
+        index: proto.index);
   }
 
   @override

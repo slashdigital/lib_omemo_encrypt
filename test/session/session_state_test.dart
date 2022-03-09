@@ -23,13 +23,15 @@ void main() {
         final messageKey = MessageKey.create(
             cipherKey: Uint8List.fromList(Utils.convertStringToBytes('key_$i')),
             macKey: Uint8List.fromList(Utils.convertStringToBytes('mac_$i')),
-            iv: Uint8List.fromList(Utils.convertStringToBytes('iv_$i')));
+            iv: Uint8List.fromList(Utils.convertStringToBytes('iv_$i')),
+            index: 0);
         final messageKeyNext = MessageKey.create(
             cipherKey:
                 Uint8List.fromList(Utils.convertStringToBytes('key_next_$i')),
             macKey:
                 Uint8List.fromList(Utils.convertStringToBytes('mac_next_$i')),
-            iv: Uint8List.fromList(Utils.convertStringToBytes('iv_next_$i')));
+            iv: Uint8List.fromList(Utils.convertStringToBytes('iv_next_$i')),
+            index: 1);
 
         final chain = Chain.create(
             Uint8List.fromList(Utils.convertStringToBytes('chainKeys_$i')),

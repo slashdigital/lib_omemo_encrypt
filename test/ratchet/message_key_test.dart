@@ -10,7 +10,8 @@ void main() {
       final messageKey = MessageKey.create(
           cipherKey: Uint8List.fromList(Utils.convertStringToBytes('key')),
           macKey: Uint8List.fromList(Utils.convertStringToBytes('mac')),
-          iv: Uint8List.fromList(Utils.convertStringToBytes('iv')));
+          iv: Uint8List.fromList(Utils.convertStringToBytes('iv')),
+          index: 0);
       final serialized = await messageKey.serialize();
 
       final parsedMsgkey = await MessageKey().deserialize(serialized);

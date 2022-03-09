@@ -291,15 +291,17 @@ class SessionCipher extends SessionCipherInterface {
       while (chain.index < counter) {
         // Some messages have not yet been delivered ("skipped") and so we need to catch the sub ratchet up
         // while keeping the message keys for when the messages are eventually delivered.
-        chain.messageKeys.insert(chain.index,
-            await ratchet.deriveMessageKeys(chain.key, chain.index));
+        chain.messageKeys
+            .add(await ratchet.deriveMessageKeys(chain.key, chain.index));
         await ratchet.clickSubRatchet(chain);
       }
       // As we have received the message, we should click the sub ratchet forwards so we can't decrypt it again
 
       Log.instance.d(tag, 'Before - _chain index: ${chain.index}');
       Log.instance.d(tag, 'Before - _chain key: ${chain.key}');
-      var messageKeys = await ratchet.deriveMessageKeys(chain.key, chain.index);
+      final messageKeys =
+          await ratchet.deriveMessageKeys(chain.key, chain.index);
+      chain.messageKeys.add(messageKeys);
       await ratchet.clickSubRatchet(chain);
       // Set next chain
       sessionState.setReceivingChain(theirEphemeralPublicKey, chain);
