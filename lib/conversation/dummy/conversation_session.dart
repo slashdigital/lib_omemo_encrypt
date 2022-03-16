@@ -17,7 +17,6 @@ import 'package:lib_omemo_encrypt/sessions/session_user.dart';
 import 'package:lib_omemo_encrypt/storage/in-memory/memory_storage.dart';
 import 'package:lib_omemo_encrypt/utils/log.dart';
 import 'package:lib_omemo_encrypt/utils/utils.dart';
-import 'package:tuple/tuple.dart';
 
 const numOfPreKeysSample = 200;
 

@@ -31,7 +31,7 @@ abstract class StorageInterface {
       required String buddyJid, // Required to have buddyJid
       required String deviceId, // Required to have deviceId with buddyJid
       required String groupJabberId, // can be '' if not group
-      required List<String> participants});
+      required Iterable<String> participants});
 
   const StorageInterface();
 }
