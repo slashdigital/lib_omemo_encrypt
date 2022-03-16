@@ -73,7 +73,7 @@ class MemoryStorage extends StorageInterface {
       required String buddyJid, // Required to have buddyJid
       required String deviceId, // Required to have deviceid with buddyJid
       required String groupJabberId, // can be '' if not group
-      required List<String> participants}) {
+      required Iterable<String> participants}) {
     throw UnimplementedError();
   }
 
